@@ -10,7 +10,7 @@ from mastodon.streaming import StreamListener
 
 # Create an instance of the Mastodon class
 mastodon = Mastodon(
-    access_token='e-4WxIYsokSRDMCfSQe1Q1PHXiWi8REdZaThWxYLeys',
+    access_token='QkFO1MAAdVPjlBLzgtewEatRfc6KAG2RFGv_9iWfpME',
     api_base_url='https://ellipsishgwt.com'
 )
 
@@ -41,7 +41,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         mastodon.stream_user(dgListener())
         # self.wfile.write(msg.encode())
 
-port = int(os.getenv('PORT', 80))
+port = int(os.getenv('PORT', 8080))
 print('Listening on port %s' % (port))
 httpd = socketserver.TCPServer(('', port), Handler)
 
