@@ -11,15 +11,17 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G':
-        _script += f'사감 선생님이 인사합니다. "오늘도 좋은 하루 보내렴, {_name}."'
+        _script += f'"오늘도 좋은 하루 보내렴, {_name}."'
     elif _house == 'S':
-        _script += f'사감 선생님이 고개를 끄덕입니다. "그래, 확인했다, {_surname}."'
+        _script += f'"그래. 확인했다, {_surname}."'
     elif _house == 'R':
-        _script += f'사감 선생님이 웃어줍니다. "좋은 하루! 기쁘게 보냈어, {_name}도?"'
+        _script += f'"좋은 하루! 기쁘게 보냈어, {_name}도?"'
     elif _house == 'H':
-        _script += f'사감 선생님이 손을 흔듭니다. "{_surname} 학생, 좋은 하루 보내게."'
+        _script += f'"{_surname} 학생, 좋은 하루 보내게."'
     else:
         return 'ERR:01 @ellipsis'
+    
+    _script += f'\n\n{_name}에게 1갈레온이 지급됩니다.'
 
     return _script
 
