@@ -25,7 +25,7 @@ class dgListener(StreamListener):
             id = notification['status']['id']
             visibility = notification['status']['visibility']
             if '[출석]' in notification['status']['content']:
-                answers = script.make_daily_script(notification['account']['username'])
+                answers = script.make_script(notification['account']['username'])
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
