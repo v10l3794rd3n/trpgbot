@@ -25,13 +25,13 @@ class dgListener(StreamListener):
             visibility = notification['status']['visibility']
             if '[출석]' in notification['status']['content']:
                 answers = script.make_daily_script(notification['account']['username'])
-            else:
-                answers = "무언가 잘못된 것 같다. 다시 시도해 보자. @ellipsis"
-                visibility = 'direct'
-        
-        mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
+            else:
+                pass
+        
+        
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
