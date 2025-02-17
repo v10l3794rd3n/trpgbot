@@ -18,9 +18,10 @@ mastodon = Mastodon(
 
 
 class dgListener(StreamListener):
-    anwers = ''
     def on_notification(self, notification):
+        print('on_notification')
         if notification['type'] == 'mention':
+            print('mention')
             id = notification['status']['id']
             visibility = notification['status']['visibility']
             if '[출석]' in notification['status']['content']:
@@ -39,6 +40,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         # msg = 'Hello! you requested %s' % (self.path)
         mastodon.stream_user(dgListener())
+        print('get')
         # self.wfile.write(msg.encode())
 
 port = int(os.getenv('PORT', 8080))
