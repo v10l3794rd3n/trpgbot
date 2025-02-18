@@ -2,6 +2,7 @@ import os
 import http.server
 import socketserver
 import script
+import re
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -26,6 +27,18 @@ class dgListener(StreamListener):
             visibility = notification['status']['visibility']
             if '[출석]' in notification['status']['content']:
                 answers = script.make_script(notification['account']['username'])
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
+            elif '[비행' in notification['status']['content']:
+                s = [int(s) for s in re.findall(r"-?\d+\.?\d*", notification['status']['content'])]
+                answers = script.make_flight_script(notification['account']['username'], s[0])
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
+            elif '[마법' in notification['status']['content']:
+                s = [s for s in re.findall(r"-?\d+\.?\d*", notification['status']['content'])]
+                answers = script.make_magic_script(notification['account']['username'], s)
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
