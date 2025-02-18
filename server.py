@@ -37,7 +37,7 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[마법' in notification['status']['content']:
-                s = re.search(r"/(.*?)\]", notification['status']['content']).group(1)
+                s = re.search(r"마법/(.*?)\]", notification['status']['content']).group(1)
                 answers = script.make_magic_script(notification['account']['username'], s)
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
