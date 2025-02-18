@@ -74,10 +74,7 @@ magic = [
 def make_magic_script(pc_id, spell):
     _script = ""
     _id = pc_id
-    _spell= ""
-
-    for s in spell:
-        _spell += s + ' '
+    _spell = spell
     
     _name = profile[_id][1]
     _ga = profile[_id][3]
