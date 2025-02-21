@@ -11,13 +11,13 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G': #이름
-        _script += f'"{_name}구나. 마법 과제는 잘 되어 가고 있겠지?"'
+        _script += f'"아, {_name}." 교수님이 익숙한 잡지를 하나 들고 있습니다. "그거 아니? 호그와트 최고의 로맨티스트는 사실..." \n슬리데린 사감 교수님이 불쾌한 듯한 발걸음 소리를 내며 지나갑니다.'
     elif _house == 'S': #성
-        _script += f'"아, {_surname}. 안 그래도 찾고 있었다만. 이따 보지."'
+        _script += f'"공부는 안 하고 잡지나 발행하다니. {_surname}, 너는 그러지 않겠지?"'
     elif _house == 'R': #이름
-        _script += f'"있지, 도서관에서 흥미로운 책을 찾을 수 있을 것 같은 날이야!"'
+        _script += f'"으으, 유령이 제발 학생들이 자기 좀 괴롭히지 말라고 하던데, 무슨 일이 일어난 거야, {_name}?"'
     elif _house == 'H': #성
-        _script += f'"성실히 수업에 임하길 바라네, {_surname} 학생."'
+        _script += f'"오늘 수업 시간에는 옛날 얘기라도 해 볼까. 어떻게 생각하나, {_surname} 학생?"'
     else:
         return 'ERR:01 @ellipsis'
     
