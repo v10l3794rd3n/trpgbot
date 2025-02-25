@@ -33,13 +33,13 @@ class dgListener(StreamListener):
             elif '[탐색' in notification['status']['content']:
                 s = re.search(r"탐색/(.*?)\]", notification['status']['content']).group(1)
                 #s = [int(s) for s in re.findall(r"-?\d+\.?\d*", notification['status']['content'])]
-                answers = script.make_flight_script(notification['account']['username'], s)
+                answers = script.make_farming_script(notification['account']['username'], s)
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[상점' in notification['status']['content']:
                 s = re.search(r"상점/(.*?)\]", notification['status']['content']).group(1)
-                answers = script.make_magic_script(notification['account']['username'], s)
+                answers = script.make_store_script(notification['account']['username'], s)
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
