@@ -1,4 +1,5 @@
 import random
+import re
 
 # random.range(0, 3) : 1~2
 # random.choice(stat)
@@ -11,13 +12,13 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G': #이름
-        _script += f'"아, {_name}." 교수님이 익숙한 잡지를 하나 들고 있습니다. "그거 아니? 호그와트 최고의 로맨티스트는 사실..." \n슬리데린 사감 교수님이 불쾌한 듯한 발걸음 소리를 내며 지나갑니다.'
+        _script += f'"{_name}, 신학기의 시작이구나!'
     elif _house == 'S': #성
-        _script += f'"공부는 안 하고 잡지나 발행하다니. {_surname}, 너는 그러지 않겠지?"'
+        _script += f'"4학년이라니. 시간이 참 빨라."'
     elif _house == 'R': #이름
-        _script += f'"으으, 유령이 제발 학생들이 자기 좀 괴롭히지 말라고 하던데, 무슨 일이 일어난 거야, {_name}?"'
+        _script += f'"{_name}! 세상에, 방학은 잘 보냈어?"'
     elif _house == 'H': #성
-        _script += f'"오늘 수업 시간에는 옛날 얘기라도 해 볼까. 어떻게 생각하나, {_surname} 학생?"'
+        _script += f'"{_surname} 학생... 이군. 못 알아 볼 뻔 했네."'
     else:
         return 'ERR:01 @ellipsis'
     
@@ -26,61 +27,92 @@ def make_script(pc_id):
     return _script
 
 
-flight = {
-    1: [
-        '업! 업! 업! 업! 업... 아무리 외쳐봐도 빗자루는 응답하지 않습니다.',
-        '빗자루엔 간신히 올라탔지만, 앞으로 움직이진 않습니다. 공중에 동동...',
-        '갑자기 3m 정도 훅 떠오릅니다. ... 겨우 다시 땅으로 내려올 수 있었습니다.',
-        '허공에 50cm 떠올라 잠깐의 비행을 즐기다가... 쿵! 빗자루가 바닥으로 돌진합니다.',
-        '빗자루가 기분 좋게 허공으로 떠오릅니다. 비행 실력 +1'
-    ],
-    2: [
-        '가벼운 비행을 즐깁니다. 너무 멀리 가진 못할 것 같습니다.',
-        '바람이 시원하게 불어옵니다. 빗자루도 천천히 움직입니다.',
-        '오늘은 평소보다 더 높이 날아오를 수 있었습니다.',
-        '이리저리 돌아다니다가, 쪽지를 하나 줍습니다. 누군가 수업 시간에 친구에게 쓴 쪽지 같네요.',
-        '이젠 비행에 좀 더 익숙해진 것 같습니다. 멀리 나가 볼까요? 비행 실력 +1'
-    ],
-    3: [
-        '수월하게 호그와트 주변을 비행합니다. 길을 잃지 않도록 조심해야겠네요.',
-        '열심히 편지를 옮기던 부엉이와 마주칩니다. 인사는... 하지 못했네요.',
-        '저 아래, 숲이 보입니다. 들어가지 말라고 했었죠.',
-        '검은 호수를 가로질러 납니다. 이 아래엔 인어가 산다던데, 진짜일까요?',
-        '풀 사이로, 무언가 반짝입니다. 갈레온 +1'
-    ]
+farming = {
+    '틈새에서 갈레온을 하나 발견합니다. 야호. 갈레온 +1',
+    '이상한 상자를 열어 보면... 갈레온이 하나 있습니다. 갈레온 +1',
+    '천 사이에 싸여 있던 갈레온을 하나 발견했습니다. 갈레온 +1',
+    '이건... 호클럼프 즙이군요. 신기한 걸 찾았습니다. 호클럼프 즙 +1',
+    '병을 하나 발견합니다. 안에 든 건... 호클럼프 즙 같네요. 호클럼프 즙 +1',
+    '시원한 냄새가 납니다. 박하 잎을 하나 찾습니다. 박하 잎 +1',
+    '정원 같은 구역을 발견합니다. 박하 잎을 하나 땄습니다. 박하 잎 +1',
+    '이상한 털이네요. 어디에 쓰는 걸까요? 거미 털 +1',
+    '이런 것도 마법약에 쓰이는 거겠죠? 거미 털 +1',
+    '벽에 흰 버섯이 자라 있습니다. 이건... 독버섯 갓 +1',
+    '물건 사이사이로 흰 버섯이 보입니다. 독버섯 갓 +1',
+    '무언가 날아다닙니다... 잡았다! 풀잠자리 +1',
+    '이것도 필요할까요? 하지만 잡았습니다. 풀잠자리 +1',
+    '식물이 난 구역을 발견합니다. 보름초 줄기 +1',
+    '유리병 안에 풀이 가득 담겨 있네요. 보름초 줄기 +1'
 }
 
-def make_flight_script(pc_id, number):
+def parse_string_to_dict(s):
+    pattern = re.findall(r'([a-zA-Z])(\d+)', s)  # 문자와 숫자를 그룹화하여 찾기
+    return {char: int(num) for char, num in pattern}
+
+def decimal_to_hex(decimal_number):
+    return hex(decimal_number)[2:]
+
+def hex_to_decimal(hex_string):
+    return int(hex_string, 16)
+
+def dict_to_hex_string(d):
+    return ''.join(f"{key}{decimal_to_hex(value)}" for key, value in d.items())
+
+def make_farming_script(pc_id, code):
     _script = ""
     _id = pc_id
-    _number = number
+    _code = decimal_to_hex(code) # 10진법을 16진법으로 변환
+
+    _inventory = parse_string_to_dict(_code)
+
+    s = re.search(r"a/(.*?)\]", _code)
     
     _name = profile[_id][1]
     _ga = profile[_id][3]
 
-    _script += f'{_name}{_ga} 비행에 나섭니다.\n\n'
-    _script += random.choice(flight[_number])
+    _script += f'{_name}{_ga} 필요의 방을 뒤적거립니다.\n\n'
+    _farming = random.choice(farming[_code])
+
+    if '호클럼프 즙' in _farming:
+        _inventory['a'] += 1
+    elif '박하 잎' in _farming:
+        _inventory['b'] += 1
+    elif '거미 털' in _farming:
+        _inventory['c'] += 1
+    elif '독버섯 갓' in _farming:
+        _inventory['d'] += 1
+    elif '풀잠자리' in _farming:
+        _inventory['e'] += 1
+    elif '보름초 줄기' in _farming:
+        _inventory['f'] += 1
+
+    _script += _farming
+
+    _code = dict_to_hex_string(_inventory)
+    _code = hex_to_decimal(_code)
+
+    _script += f'\n\n인벤토리 코드: {_code}'
 
     return _script
 
-magic = [
-    '지팡이가 부르르 떨립니다. ...원래 이런 마법이었던가? 아무래도 실패한 것 같네요.',
-    '펑! 지팡이 끝에서 연기가 나옵니다. ...실패한 것 같죠?',
-    '... 아무 일도 일어나지 않습니다. 실패네요.',
-    '지팡이 끝이 유려하게 움직입니다. 마법이 성공합니다.',
-    '마법을 훌륭하게 해냅니다. 이 정도면 교수님들에게 보여드려도 되겠어요.'
+store = [
+    '"구매 고마워!" 선배가 갈레온을 셉니다.',
+    '"근데, 그거 어디에 쓸 거야?" 선배가 묻습니다.',
+    '선배가 물건을 내어줍니다. "이걸로 내 일확천금의 꿈으로 더 가까이..." 일확천금은 그런 뜻이 아닐 텐데?!',
+    '"휴, 얼마 전엔 교수님한테 들킬 뻔 했잖아." 선배가 툴툴댑니다.',
+    '"감사합니다, 고객님! 자, 여깄어."'
 ]
 
-def make_magic_script(pc_id, spell):
+def make_store_script(pc_id, goods):
     _script = ""
     _id = pc_id
-    _spell = spell
+    _goods = goods
     
     _name = profile[_id][1]
     _ga = profile[_id][3]
 
-    _script += f'{_name}{_ga} {_spell}, 주문을 외웁니다.'
-    _script += random.choice(magic)
+    _script += f'{_name}{_ga} 상점에서 물건을 삽니다. {_goods}... 어디에 써 볼까요?\n\n'
+    _script += random.choice(store)
 
     return _script
 
