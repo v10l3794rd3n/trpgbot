@@ -50,7 +50,7 @@ def parse_string_to_dict(s):
     return {char: int(num) for char, num in pattern}
 
 def decimal_to_hex(decimal_number):
-    return hex(decimal_number)[2:]
+    return hex(int(decimal_number))[2:]
 
 def hex_to_decimal(hex_string):
     return int(hex_string, 16)
