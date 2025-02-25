@@ -45,9 +45,10 @@ farming = {
     '유리병 안에 풀이 가득 담겨 있네요. 보름초 줄기 +1'
 }
 
-def parse_string_to_dict(s):
+def parse_string_to_dict(s: str) -> dict:
     pattern = re.findall(r'([a-zA-Z])(\d+)', s)  # 문자와 숫자를 그룹화하여 찾기
-    return {char: int(num) for char, num in pattern}
+    parsed_dict = dict((char, int(num)) for char, num in pattern)  # 명확한 dict 변환
+    return parsed_dict
 
 def decimal_to_hex(decimal_number):
     return hex(int(decimal_number))[2:]
