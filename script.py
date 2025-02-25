@@ -72,7 +72,7 @@ def make_farming_script(pc_id, code):
     _ga = profile[_id][3]
 
     _script += f'{_name}{_ga} 필요의 방을 뒤적거립니다.\n\n'
-    _farming = random.choice(farming[_code])
+    _farming = random.choice(farming)
 
     if '호클럼프 즙' in _farming:
         _inventory['a'] += 1
