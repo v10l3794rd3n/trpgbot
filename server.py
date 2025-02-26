@@ -43,6 +43,12 @@ class dgListener(StreamListener):
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
+            elif '[랜덤박스' in notification['status']['content'] or '[랜덤 박스' in notification['status']['content']:
+                s = [int(s) for s in re.findall(r"-?\d+\.?\d*", notification['status']['content'])]
+                answers = script.make_gacha_script(s[0])
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
             else:
                 pass
         
