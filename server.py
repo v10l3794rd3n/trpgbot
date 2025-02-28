@@ -56,7 +56,7 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[마법약' in notification['status']['content']:
-                s = re.search(r"마법약/(.*?)/", notification['status']['content']).group(1)
+                s = re.search(r'\[.*?/([^/\]]+)/.*?\]', notification['status']['content']).group(1)
                 potion = re.search(r'\[.*?/(.*?)/([^/\]]+)\]', notification['status']['content']).group(2)
                 answers = script.make_potion_script(s, potion)
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
