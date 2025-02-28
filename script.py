@@ -214,6 +214,8 @@ def make_potion_script(s, potion):
 
     _script += f'\n\n인벤토리 코드: {_code}'
 
+    return _script
+
 
 card = {
     '아라벨라': '빗자루',
