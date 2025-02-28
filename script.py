@@ -66,7 +66,7 @@ def make_farming_script(pc_id, code):
 
     _inventory = parse_string_to_dict(_code)
 
-    s = re.search(r"a/(.*?)\]", _code)
+#    s = re.search(r"a/(.*?)\]", _code)
     
     _name = profile[_id][1]
     _ga = profile[_id][3]
@@ -172,49 +172,62 @@ def make_inventory_script(s):
 
 def make_potion_script(s, potion):
     _script = ""
-    _code = decimal_to_hex(s) # 10진법을 16진법으로 변환
+    _code = decimal_to_hex(s)  # 10진법을 16진법으로 변환
     _potion = potion
+
+    print(f"🎯 원본 10진수 인벤토리 코드: {s}")
+    print(f"🎯 변환된 16진수 인벤토리 코드: {_code}")
 
     _inventory = parse_string_to_dict(_code)
 
-    s = re.search(r"a/(.*?)\]", _code)
-    
+    print(f"🎯 16진수를 딕셔너리로 변환한 결과: {_inventory}")
 
     _script += f'{_potion}, 만들어 봅시다!\n\n'
-    
-    if _potion == '아르부스':
-        _inventory['a'] -= 2
-        _inventory['b'] -= 1
-        _script += '이제 둥둥 떠다닐 수 있어!'
-    elif _potion == '파이제논':
-        _inventory['e'] -= 2
-        _inventory['f'] -= 1
-        _script += '이걸로 공부의 신이 되자.'
-    elif _potion == '폴리주스':
-        _inventory['b'] -= 2
-        _inventory['c'] -= 1
-        _script += '머리카락만 슬쩍 훔쳐오면 나도...'
-    elif _potion == '티르소스':
-        _inventory['c'] -= 2
-        _inventory['d'] -= 1
-        _script += '이제 졸아도 안 들킨다고!'
-    elif _potion == '비즈둔':
-        _inventory['d'] -= 2
-        _inventory['e'] -= 1
-        _script += '초코가 좋아.'
-    elif _potion == '메이고르':
-        _inventory['f'] -= 2
-        _inventory['a'] -= 1
-        _script += '이걸로 좋은 하루가 될 거야!'
-    else:
+
+    potion_requirements = {
+        '아르부스': {'a': 2, 'b': 1},
+        '파이제논': {'e': 2, 'f': 1},
+        '폴리주스': {'b': 2, 'c': 1},
+        '티르소스': {'c': 2, 'd': 1},
+        '비즈둔': {'d': 2, 'e': 1},
+        '메이고르': {'f': 2, 'a': 1}
+    }
+
+    if _potion not in potion_requirements:
         _script += '혹시 마법약 이름을 틀리진 않았을까?'
+        return _script
+
+    requirements = potion_requirements[_potion]
+
+    for ingredient, amount in requirements.items():
+        if _inventory.get(ingredient, 0) < amount:
+            _script += '재료가 부족해! 다시 확인해 보자.'
+            return _script
+
+    for ingredient, amount in requirements.items():
+        _inventory[ingredient] -= amount
+
+    potion_effects = {
+        '아르부스': '이제 둥둥 떠다닐 수 있어!',
+        '파이제논': '이걸로 공부의 신이 되자.',
+        '폴리주스': '머리카락만 슬쩍 훔쳐오면 나도...',
+        '티르소스': '이제 졸아도 안 들킨다고!',
+        '비즈둔': '초코가 좋아.',
+        '메이고르': '이걸로 좋은 하루가 될 거야!'
+    }
+    
+    _script += potion_effects[_potion]
 
     _code = dict_to_hex_string(_inventory)
+    print(f"🎯 수정된 딕셔너리를 16진수로 변환한 결과: {_code}")
+
     _code = hex_to_decimal(_code)
+    print(f"🎯 최종적으로 변환된 10진수 인벤토리 코드: {_code}")
 
     _script += f'\n\n인벤토리 코드: {_code}'
 
     return _script
+
 
 
 card = {
