@@ -57,7 +57,8 @@ def hex_to_decimal(hex_string):
     return int(hex_string, 16)
 
 def dict_to_hex_string(d):
-    return ''.join(f"{key}{decimal_to_hex(value)}" for key, value in d.items())
+    return ''.join(f"{key}{int(value)}" for key, value in sorted(d.items()))
+
 
 def make_farming_script(pc_id, code):
     _script = ""
