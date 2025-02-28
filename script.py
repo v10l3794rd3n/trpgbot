@@ -12,13 +12,13 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G': #이름
-        _script += f'"{_name}, 신학기의 시작이구나!'
+        _script += f'"{_name}, 힘든 일이 있으면 언제든 알려줘!'
     elif _house == 'S': #성
-        _script += f'"4학년이라니. 시간이 참 빨라."'
+        _script += f'"너무 귀찮은 일은 만들지 말도록, {_surname}."'
     elif _house == 'R': #이름
-        _script += f'"{_name}! 세상에, 방학은 잘 보냈어?"'
+        _script += f'"내가 그리핀도르 사감 교수님 도마뱀으로 만든 거, 누가 일렀어?!"'
     elif _house == 'H': #성
-        _script += f'"{_surname} 학생... 이군. 못 알아 볼 뻔 했네."'
+        _script += f'"즐거운 학기 보내게, {_surname} 학생."'
     else:
         return 'ERR:01 @ellipsis'
     
@@ -151,13 +151,125 @@ def make_gacha_script(s):
 
     return _script
 
+def make_inventory_script(s):
+    _script = ""
+    _code = decimal_to_hex(s) # 10진법을 16진법으로 변환
+
+    _inventory = parse_string_to_dict(_code)
+
+    s = re.search(r"a/(.*?)\]", _code)
+    
+
+    _script += '현재 소지 재료\n\n'
+    _script += f'호클럼프 즙: {_inventory['a']}\n'
+    _script += f'박하 잎: {_inventory['b']}\n'
+    _script += f'거미 털: {_inventory['c']}\n'
+    _script += f'독버섯 갓: {_inventory['d']}\n'
+    _script += f'풀잠자리: {_inventory['e']}\n'
+    _script += f'보름초 줄기: {_inventory['f']}\n'
+
+    return _script
+
+def make_potion_script(s, potion):
+    _script = ""
+    _code = decimal_to_hex(s) # 10진법을 16진법으로 변환
+    _potion = potion
+
+    _inventory = parse_string_to_dict(_code)
+
+    s = re.search(r"a/(.*?)\]", _code)
+    
+
+    _script += f'{_potion}, 만들어 봅시다!\n\n'
+    
+    if _potion == '아르부스':
+        _inventory['a'] -= 2
+        _inventory['b'] -= 1
+        _script += '이제 둥둥 떠다닐 수 있어!'
+    elif _potion == '파이제논':
+        _inventory['e'] -= 2
+        _inventory['f'] -= 1
+        _script += '이걸로 공부의 신이 되자.'
+    elif _potion == '폴리주스':
+        _inventory['b'] -= 2
+        _inventory['c'] -= 1
+        _script += '머리카락만 슬쩍 훔쳐오면 나도...'
+    elif _potion == '티르소스':
+        _inventory['c'] -= 2
+        _inventory['d'] -= 1
+        _script += '이제 졸아도 안 들킨다고!'
+    elif _potion == '비즈둔':
+        _inventory['d'] -= 2
+        _inventory['e'] -= 1
+        _script += '초코가 좋아.'
+    elif _potion == '메이고르':
+        _inventory['f'] -= 2
+        _inventory['a'] -= 1
+        _script += '이걸로 좋은 하루가 될 거야!'
+    else:
+        _script += '혹시 마법약 이름을 틀리진 않았을까?'
+
+    _code = dict_to_hex_string(_inventory)
+    _code = hex_to_decimal(_code)
+
+    _script += f'\n\n인벤토리 코드: {_code}'
+
+
+card = {
+    '아라벨라': '빗자루',
+    '트루먼': '지팡이',
+    '리키': '빗자루',
+    '펠릭스': '지팡이',
+    '다아시': '빗자루',
+    '테오도르': '지팡이',
+    '엘리오르': '빗자루',
+    '에셀레드': '지팡이',
+    '리아트리스': '빗자루',
+    '노라': '지팡이',
+    '벤자민': '빗자루',
+    '나샤렛': '지팡이',
+    '에블린': '빗자루',
+    '이엔': '지팡이',
+    '러셀': '빗자루',
+    '주노': '지팡이',
+    '에밀리': '빗자루',
+    '애슈턴': '지팡이',
+    '이사야': '빗자루',
+    '밋치': '지팡이',
+    '일': '빗자루',
+    '아니카': '지팡이'
+}
+
+def make_hgsmd_change_script(s, id):
+    _name = s
+    _changer = profile[id][1]
+    _script = '서로 카드를 바꿉니다. 무슨 일이 일어날까요?'
+
+    save = card[_changer]
+    card[_changer] = card[_name]
+    card[_name] = save
+
+    print(card)
+
+    return _script
+
+def make_hgsmd_result_script(s, id):
+    _name = profile[id][1]
+    _script = f'정답은... {card[_name]}!\n\n'
+
+    if s == card[_name]:
+        _script += '정답! 선물을 받아가자.\n\n스토리 계정으로 멘션 부탁드립니다.'
+    else:
+        _script += '오답! 아쉽게 됐다... 1갈레온을 획득합니다.'
+
+    return _script
+    
 
 profile = {
     'Arabella': ['G', '아라벨라', '아라벨라', '가', '를'],
     'Truman_Adams': ['H', '트루먼', '애덤스', '이', '을'],
     'Ricky': ['S', '리키', '에어드', '가', '를'],
     'FelixPB': ['S', '펠릭스', '베넷', '가', '를'],
-    'W1': ['S', '파시오마티아', '오데트릴', '가', '를'],
     'DarcyIsm': ['G', '다아시', '이즈멜', '가', '를'],
     'TEO928': ['R', '테오도르', '러셀', '가', '를'],
     'Elior': ['R', '엘리오르', '티모테우스', '가', '를'],
@@ -168,7 +280,6 @@ profile = {
     'nasaret': ['G', '나샤렛', '브링클리', '이', '을'],
     'Evelyn': ['R', '에블린', '페레즈', '이', '을'],
     'En_L': ['H', '이엔', '레인', '이', '을'],
-    'Gray_L': ['S', '리', '그레이', '가', '를'],
     '_RP_00': ['S', '러셀', '패트릭', '이', '을'],
     'jono': ['R', '주노', '바브렉', '가', '를'],
     'EmilyLT': ['H', '에밀리', '로랑', '가', '를'],

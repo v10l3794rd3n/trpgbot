@@ -49,6 +49,31 @@ class dgListener(StreamListener):
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
+            elif '[인벤토리' in notification['status']['content']:
+                s = re.search(r"인벤토리/(.*?)\]", notification['status']['content']).group(1)
+                answers = script.make_inventory_script(s)
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
+            elif '[마법약' in notification['status']['content']:
+                s = re.search(r"마법약/(.*?)\]", notification['status']['content']).group(1)
+                potion = re.search(r'\[.*?/(.*?)/([^/\]]+)\]', notification['status']['content']).group(2)
+                answers = script.make_potion_script(s, potion)
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
+            elif '[교환' in notification['status']['content']:
+                s = re.search(r"교환/(.*?)\]", notification['status']['content']).group(1)
+                answers = script.make_hgsmd_change_script(s, notification['account']['username'])
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
+            elif '[결과' in notification['status']['content']:
+                s = re.search(r"결과/(.*?)\]", notification['status']['content']).group(1)
+                answers = script.make_hgsmd_result_script(s, notification['account']['username'])
+                mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
             else:
                 pass
         
