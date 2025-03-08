@@ -12,13 +12,13 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G': #이름
-        _script += f'"{_name}, 힘든 일이 있으면 언제든 알려줘!'
+        _script += f'"어떡해, 우리 {_name}, 벌써 이렇게 크다니...!"'
     elif _house == 'S': #성
-        _script += f'"너무 귀찮은 일은 만들지 말도록, {_surname}."'
+        _script += f'"N.E.W.T. 준비는 성실히 하고 있나?"'
     elif _house == 'R': #이름
-        _script += f'"내가 그리핀도르 사감 교수님 도마뱀으로 만든 거, 누가 일렀어?!"'
+        _script += f'"너무 책만 읽지 말고, 공부도 해야 해! ...이게 무슨 말이냐고?"'
     elif _house == 'H': #성
-        _script += f'"즐거운 학기 보내게, {_surname} 학생."'
+        _script += f'"{_surname} 학생, 마지막까지 최선을 다하는 모습 기대하지."'
     else:
         return 'ERR:01 @ellipsis'
     
@@ -303,5 +303,8 @@ profile = {
     'Isaiah_': ['R', '이사야', '서머스', '가', '를'],
     'Mitch': ['R', '밋치', '린도', '가', '를'],
     '3_lines': ['H', '일', '커스버트슨', '이', '을'],
-    'anika': ['G', '아니카', '리', '가', '를']
+    'anika': ['G', '아니카', '리', '가', '를'],
+    'mmm': ['S', '미마스', '모링턴', '가', '를'],
+    'Camila' : ['S', '카멜리아', '스칼렛', '가', '를'],
+    'Serenity' : ['S', '세레니티', '마르티네즈', '가', '를']
 }
