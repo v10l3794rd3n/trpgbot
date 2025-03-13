@@ -12,13 +12,13 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G': #이름
-        _script += f'"어떡해, 우리 {_name}, 벌써 이렇게 크다니...!"'
+        _script += f'"...제이가 걱정되는구나."'
     elif _house == 'S': #성
-        _script += f'"N.E.W.T. 준비는 성실히 하고 있나?"'
+        _script += f'"{_surname}, 마법은 마법일 뿐이야. 기억해 둬."'
     elif _house == 'R': #이름
-        _script += f'"너무 책만 읽지 말고, 공부도 해야 해! ...이게 무슨 말이냐고?"'
+        _script += f'"그 숲엔 용이 산다던데. ...내가 무슨 말을. 무시해 줘, {_name}!"'
     elif _house == 'H': #성
-        _script += f'"{_surname} 학생, 마지막까지 최선을 다하는 모습 기대하지."'
+        _script += f'"초상화들이 기승이라는군, {_surname} 학생. 뭔가 아는 게 있나?"'
     else:
         return 'ERR:01 @ellipsis'
     
