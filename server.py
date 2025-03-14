@@ -135,7 +135,7 @@ class dgListener(StreamListener):
                 for i in range(0, len(image_links), max_links_per_post):
                     post_text = "물건을 가져가자!\n"
                     for link, filename in image_links[i:i+max_links_per_post]:
-                        post_text += f"{filename}: {link}\n"
+                        post_text += f"{link}\n"
                     
                     if notification:
                         post_text = f"@{notification['account']['username']}\n" + post_text
