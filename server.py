@@ -63,11 +63,13 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[프롬]' in notification['status']['content']:
-                result = script.format_results(script.generate_gacha_results())
+                            
+                results = script.generate_gacha_results()
+                formatted_results = script.format_results(results)
                 
                 previous_post = None
                 
-                for batch in result:
+                for batch in formatted_results:
                     media_ids = []
                     text_content = []
                     image_names = []
@@ -82,18 +84,23 @@ class dgListener(StreamListener):
                             text_content.append(item)
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
-                status_text = "@" + notification['account']['username'] + "\n"
-                status_text += "\n".join(image_names + text_content) if image_names or text_content else 'ERR:02'
-                
-                # 툿 업로드
-                post_args = {
-                    "status": status_text,
-                    "media_ids": media_ids,
-                    "in_reply_to_id": previous_post['id'] if previous_post else id,
-                    "visibility": visibility
-                }
-                
-                previous_post = mastodon.status_post(**post_args)
+                    status_text = "@" + notification['account']['username'] + "\n"
+                    
+                    if image_names or text_content:
+                        status_text += "\n".join(image_names + text_content)
+                    else:
+                        status_text += 'ERR:02'
+                    
+                    # 툿 업로드
+                    post_args = {
+                        "status": status_text,
+                        "media_ids": media_ids if media_ids else None,
+                        "in_reply_to_id": previous_post['id'] if previous_post else id,
+                        "visibility": visibility
+                    }
+                    
+                    previous_post = mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
+
             else:
                 pass
         
