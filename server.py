@@ -63,15 +63,30 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[프롬]' in notification['status']['content']:
-                            
                 results = script.generate_gacha_results()
-                formatted_results = script.format_results(results)
+    
+                # 이미지와 텍스트를 함께 묶어서 하나의 툿에 포함하도록 조정
+                image_batch = []
+                text_content = []
+                
+                for item in results:
+                    if os.path.exists(item):  # 이미지 파일인 경우
+                        image_batch.append(item)
+                    else:  # 텍스트인 경우
+                        text_content.append(item)
+                
+                formatted_results = []
+                while image_batch:
+                    formatted_results.append(image_batch[:4])  # 4개씩 묶어서 나누기
+                    image_batch = image_batch[4:]
+                
+                if text_content:
+                    formatted_results.append(text_content)  # 텍스트를 하나의 툿으로 추가
                 
                 previous_post = None
                 
                 for batch in formatted_results:
                     media_ids = []
-                    text_content = []
                     image_names = []
                     
                     # 이미지 업로드 처리
@@ -80,8 +95,8 @@ class dgListener(StreamListener):
                             media = mastodon.media_post(item)
                             media_ids.append(media['id'])
                             image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
-                        else:  # 텍스트인 경우
-                            text_content.append(item)
+                        else:
+                            text_content.append(item)  # 텍스트 저장
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
                     status_text = "@" + notification['account']['username'] + "\n"
@@ -100,6 +115,7 @@ class dgListener(StreamListener):
                     }
                     
                     previous_post = mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
+
 
             else:
                 pass
