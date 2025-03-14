@@ -5,6 +5,7 @@ import script
 import re
 import mimetypes  # 기본 라이브러리 활용
 import time
+import traceback
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -116,8 +117,13 @@ class dgListener(StreamListener):
                     else:
                         status_text += 'ERR:02'
                     
-                    mastodon.status_post(status_text, in_reply_to_id=id, visibility=visibility, media_ids=media_ids)
-                    time.sleep(2)
+                    try:
+                        mastodon.status_post(status_text, in_reply_to_id=id, visibility=visibility, media_ids=media_ids)
+                        time.sleep(2)
+                    except Exception as e:
+                        print(f"⚠️ 툿 업로드 실패: {e}")
+                        traceback.print_exc()  # 오류 상세 출력
+                        continue
 
                     del image_batch[:]
                     del text_content[:]
