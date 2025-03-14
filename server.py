@@ -3,6 +3,7 @@ import http.server
 import socketserver
 import script
 import re
+import imghdr
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -16,9 +17,13 @@ mastodon = Mastodon(
 )
 
 
+def is_valid_image(file_path):
+    return imghdr.what(file_path) in ['png']
 
 
 class dgListener(StreamListener):
+
+
     def on_notification(self, notification):
         print('on_notification')
         if notification['type'] == 'mention':
@@ -63,7 +68,6 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[프롬]' in notification['status']['content']:
-
                 results = script.generate_gacha_results()
                 
                 # 이미지와 텍스트를 함께 묶어서 하나의 툿에 포함하도록 조정
@@ -71,9 +75,9 @@ class dgListener(StreamListener):
                 text_content = []
                 
                 for item in results:
-                    if os.path.exists(item):  # 이미지 파일인 경우
+                    if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
                         image_batch.append(item)
-                    else:  # 텍스트인 경우
+                    elif isinstance(item, str):  # 텍스트인 경우
                         text_content.append(item)
                 
                 formatted_results = []
@@ -91,10 +95,13 @@ class dgListener(StreamListener):
                     
                     # 이미지 업로드 처리
                     for item in batch:
-                        if os.path.exists(item):  # 이미지 파일인 경우
-                            media = mastodon.media_post(item)
-                            media_ids.append(media['id'])
-                            image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
+                        if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
+                            try:
+                                media = mastodon.media_post(item)
+                                media_ids.append(media['id'])
+                                image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
+                            except Exception as e:
+                                print(f"⚠️ 이미지 업로드 오류: {e}")  # 오류 발생 시 출력하고 해당 이미지 제외
                         else:
                             batch_text_content.append(item)  # 해당 배치에 속한 텍스트만 저장
                     
@@ -104,7 +111,7 @@ class dgListener(StreamListener):
                     if image_names or batch_text_content:
                         status_text += "\n".join(image_names + batch_text_content)
                     else:
-                        status_text += 'ERR:02'
+                        status_text += '톡, 톡... 누군가의 인형이 나왔다!'
                     
                     # 툿 업로드
                     post_args = {
@@ -115,7 +122,6 @@ class dgListener(StreamListener):
                     }
                     
                     mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
-
             else:
                 pass
         
