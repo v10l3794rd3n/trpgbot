@@ -91,29 +91,28 @@ class dgListener(StreamListener):
                 
                 # 이미지와 텍스트를 함께 묶어서 하나의 툿에 포함하도록 조정
                 image_batch = []
-                text_content = []
+                text_batch = []
                 
                 for item in results:
                     if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
                         image_batch.append(item)
                     elif isinstance(item, str):  # 텍스트인 경우
-                        text_content.append(item)
+                        text_batch.append(item)
                 
                 formatted_results = []
                 while image_batch:
-                    formatted_results.append(image_batch[:4])  # 4개씩 묶어서 나누기
+                    formatted_results.append(image_batch[:4], [])  # 4개씩 묶어서 나누기
                     image_batch = image_batch[4:]
                 
-                if text_content:
-                    formatted_results.append(text_content)  # 텍스트를 하나의 툿으로 추가
+                if text_batch:
+                    formatted_results.append([], text_batch)  # 텍스트를 하나의 툿으로 추가
                 
-                for batch in formatted_results:
+                for image_group, text_group in formatted_results:
                     media_ids = []
                     image_names = []
-                    batch_text_content = []  # 중복 방지용 텍스트 리스트
                     
                     # 이미지 업로드 처리
-                for item in batch:
+                for item in image_group:
                     if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
                         result = timeout_function(mastodon.media_post, 30, item)
                         if isinstance(result, Exception):
@@ -122,24 +121,22 @@ class dgListener(StreamListener):
                         media_ids.append(result['id'])
                         image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
                         time.sleep(1)
-                    else:
-                        batch_text_content.append(item)  # 해당 배치에 속한 텍스트만 저장
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
                     status_text = "@" + notification['account']['username'] + "\n"
                     
-                    if image_names or batch_text_content:
-                        status_text += "\n".join(image_names + batch_text_content)
+                    if image_names or text_group:
+                        status_text += "\n".join(image_names + text_group)
                     else:
                         status_text += 'ERR:02'
                     
 
                     result = timeout_function(mastodon.status_post, 60, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
-                    time.sleep(1)
                     if isinstance(result, Exception):
                         print(f"⚠️ 툿 업로드 실패: {result}")
                         traceback.print_exc()
                         continue
+                    time.sleep(2)
             else:
                 pass
         
