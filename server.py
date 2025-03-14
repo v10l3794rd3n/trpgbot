@@ -24,13 +24,13 @@ def is_valid_image(file_path):
     mime_type, _ = mimetypes.guess_type(file_path)
     return mime_type in ['image/png']
 
-def timeout_function(func, args=(), timeout=30):
+def timeout_function(func, timeout=10, *args, **kwargs):
     """ 특정 함수가 일정 시간 내 실행되지 않으면 중단하는 함수 """
     result = [None]
     
     def wrapper():
         try:
-            result[0] = func(*args)
+            result[0] = func(*args, **kwargs)
         except Exception as e:
             result[0] = e
     
@@ -115,7 +115,7 @@ class dgListener(StreamListener):
                     # 이미지 업로드 처리
                 for item in batch:
                     if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                        result = timeout_function(mastodon.media_post, (item,), timeout=20)
+                        result = timeout_function(mastodon.media_post, 10, item)
                         if isinstance(result, Exception):
                             print(f"⚠️ 이미지 업로드 실패: {result}")
                             continue
@@ -133,21 +133,13 @@ class dgListener(StreamListener):
                     else:
                         status_text += 'ERR:02'
                     
-                    post_args = {
-                        "status": status_text,
-                        "media_ids": media_ids if media_ids else None,
-                        "in_reply_to_id": id,
-                        "visibility": visibility
-                    }
-                    
-                    result = timeout_function(mastodon.status_post, (post_args,), timeout=30)
+
+                    result = timeout_function(mastodon.status_post, 10, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=previous_post['id'] if previous_post else None, visibility=visibility)
+                    time.sleep(2)
                     if isinstance(result, Exception):
                         print(f"⚠️ 툿 업로드 실패: {result}")
                         traceback.print_exc()
                         continue
-
-                    time.sleep(2)
-
             else:
                 pass
         
