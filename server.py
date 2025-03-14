@@ -27,22 +27,25 @@ def is_valid_image(file_path):
 def timeout_function(func, timeout=10, *args, **kwargs):
     """ 특정 함수가 일정 시간 내 실행되지 않으면 강제 종료하는 함수 """
     result = [None]
-    
+
     def wrapper():
         try:
-            result[0] = func(*args, **kwargs)
+            start_time = time.time()
+            result[0] = func(*args, **kwargs)  # API 요청 실행
+            end_time = time.time()
+            print(f"⏳ 실행 시간: {end_time - start_time:.2f}초")
         except Exception as e:
-            result[0] = e
+            result[0] = e  # 예외 저장
     
-    thread = threading.Thread(target=wrapper)
+    thread = threading.Thread(target=wrapper, daemon=True)  # 🔥 스레드가 자동 종료되도록 설정
     thread.start()
-    thread.join(timeout)
+    thread.join(timeout)  # 최대 `timeout` 초 동안 대기
     
-    if thread.is_alive():
+    if thread.is_alive():  # 스레드가 아직 실행 중이라면?
         print("⚠️ 요청이 너무 오래 걸려 강제 종료합니다.")
         return TimeoutError("⚠️ 요청이 너무 오래 걸려 중단되었습니다.")
     
-    return result[0]
+    return result[0]  # 정상 응답 반환
 
 class dgListener(StreamListener):
     def on_notification(self, notification):
@@ -117,19 +120,22 @@ class dgListener(StreamListener):
                 for image_group, text_group in formatted_results:
                     media_ids = []
                     image_names = []
+
+                    
                     
                     # 이미지 업로드 처리
                     print(f"🖼️ 이미지 업로드 중... {image_group}")
                     for item in image_group:
                         if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                            result = timeout_function(mastodon.media_post, 10, item)
+                            result = timeout_function(mastodon.media_post, 30, item)
                             if isinstance(result, Exception):
                                 print(f"⚠️ 이미지 업로드 실패: {result}")
                                 continue
                             media_ids.append(result['id'])
                             image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
-                        
+                        time.sleep(5)
                         # 툿 작성 (이미지 파일명과 텍스트 출력)
+
                     status_text = "@" + notification['account']['username'] + "\n"
                     
                     if image_names or text_group:
