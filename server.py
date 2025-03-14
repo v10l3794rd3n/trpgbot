@@ -115,7 +115,7 @@ class dgListener(StreamListener):
                     # 이미지 업로드 처리
                 for item in batch:
                     if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                        result = timeout_function(mastodon.media_post, 10, item)
+                        result = timeout_function(mastodon.media_post, 30, item)
                         if isinstance(result, Exception):
                             print(f"⚠️ 이미지 업로드 실패: {result}")
                             continue
@@ -134,7 +134,7 @@ class dgListener(StreamListener):
                         status_text += 'ERR:02'
                     
 
-                    result = timeout_function(mastodon.status_post, 10, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
+                    result = timeout_function(mastodon.status_post, 60, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
                     time.sleep(1)
                     if isinstance(result, Exception):
                         print(f"⚠️ 툿 업로드 실패: {result}")
