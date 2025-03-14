@@ -47,56 +47,7 @@ def timeout_function(func, timeout=30, *args, **kwargs):
     
     return result[0]
 
-def split_and_post_results(image_links, text_results, max_links_per_post=4, notification=None):
-    """가챠 결과(이미지와 텍스트)를 여러 개의 툿으로 나눠서 올리기"""
-    id = notification['status']['id']
-    visibility = notification['status']['visibility']
-    previous_post = None
-    
-    # 텍스트 결과 먼저 툿에 올리기
-    if text_results:
-        text_post = f"상자를 열면......\n" + "\n".join(text_results)
-        if notification:
-            text_post = f"@{notification['account']['username']}\n" + text_post
-        
-        result = timeout_function(
-            mastodon.status_post, 30,
-            status=text_post,
-            in_reply_to_id=previous_post['id'] if previous_post else id,
-            visibility=visibility
-        )
-        
-        if isinstance(result, Exception):
-            print(f"⚠️ 텍스트 툿 업로드 실패: {result}")
-        else:
-            previous_post = result
-            print(f"✅ 텍스트 툿 업로드 완료: {previous_post}")
-        
-        time.sleep(3)
-    
-    # 이미지 링크 툿 나눠서 올리기 (파일명 포함)
-    for i in range(0, len(image_links), max_links_per_post):
-        post_text = "물건을 가져가자!\n"
-        for link, filename in image_links[i:i+max_links_per_post]:
-            post_text += f"{filename}: {link}\n"
-        
-        if notification:
-            post_text = f"@{notification['account']['username']}\n" + post_text
-        
-        result = timeout_function(
-            mastodon.status_post, 30,
-            status=post_text,
-            in_reply_to_id=previous_post['id'] if previous_post else None,
-            visibility=visibility
-        )
-        
-        if isinstance(result, Exception):
-            print(f"⚠️ 이미지 툿 업로드 실패: {result}")
-            continue
-        
-        previous_post = result  # 이전 툿을 스레드로 연결
-        print(f"✅ 이미지 툿 업로드 완료: {previous_post}")
-        time.sleep(3)
+
 
 
 class dgListener(StreamListener):
@@ -154,9 +105,55 @@ class dgListener(StreamListener):
                 
                 print(f"📦 정리된 가챠 이미지 링크: {image_links}")
                 print(f"📝 정리된 가챠 텍스트 결과: {text_results}")
-                
-                split_and_post_results(image_links, text_results, notification)
 
+                """가챠 결과(이미지와 텍스트)를 여러 개의 툿으로 나눠서 올리기"""
+                previous_post = None
+                max_links_per_post = 4
+                
+                # 텍스트 결과 먼저 툿에 올리기
+                if text_results:
+                    text_post = f"상자를 열면......\n" + "\n".join(text_results)
+                    if notification:
+                        text_post = f"@{notification['account']['username']}\n" + text_post
+                    
+                    result = timeout_function(
+                        mastodon.status_post, 30,
+                        status=text_post,
+                        in_reply_to_id=previous_post['id'] if previous_post else id,
+                        visibility=visibility
+                    )
+                    
+                    if isinstance(result, Exception):
+                        print(f"⚠️ 텍스트 툿 업로드 실패: {result}")
+                    else:
+                        previous_post = result
+                        print(f"✅ 텍스트 툿 업로드 완료: {previous_post}")
+                    
+                    time.sleep(3)
+                
+                # 이미지 링크 툿 나눠서 올리기 (파일명 포함)
+                for i in range(0, len(image_links), max_links_per_post):
+                    post_text = "물건을 가져가자!\n"
+                    for link, filename in image_links[i:i+max_links_per_post]:
+                        post_text += f"{filename}: {link}\n"
+                    
+                    if notification:
+                        post_text = f"@{notification['account']['username']}\n" + post_text
+                    
+                    result = timeout_function(
+                        mastodon.status_post, 30,
+                        status=post_text,
+                        in_reply_to_id=previous_post['id'] if previous_post else id,
+                        visibility=visibility
+                    )
+                    
+                    if isinstance(result, Exception):
+                        print(f"⚠️ 이미지 툿 업로드 실패: {result}")
+                        continue
+                    
+                    previous_post = result  # 이전 툿을 스레드로 연결
+                    print(f"✅ 이미지 툿 업로드 완료: {previous_post}")
+                    time.sleep(3)
 
             else:
                 pass
