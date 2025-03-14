@@ -83,8 +83,6 @@ class dgListener(StreamListener):
                 if text_content:
                     formatted_results.append(text_content)  # 텍스트를 하나의 툿으로 추가
                 
-                previous_post = None
-                
                 for batch in formatted_results:
                     media_ids = []
                     image_names = []
@@ -110,11 +108,11 @@ class dgListener(StreamListener):
                     post_args = {
                         "status": status_text,
                         "media_ids": media_ids if media_ids else None,
-                        "in_reply_to_id": previous_post['id'] if previous_post else id,
+                        "in_reply_to_id": id,
                         "visibility": visibility
                     }
                     
-                    previous_post = mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
+                    mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
 
 
             else:
