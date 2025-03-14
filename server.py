@@ -19,9 +19,10 @@ mastodon = Mastodon(
 )
 
 
-def is_valid_image(file_path):
-    mime_type, _ = mimetypes.guess_type(file_path)
-    return mime_type in ['image/png']
+
+def generate_drive_link(file_id):
+    """Google Drive 공유 링크를 Direct Image Link로 변환"""
+    return f"https://drive.google.com/uc?export=view&id={file_id}"
 
 def timeout_function(func, timeout=30, *args, **kwargs):
     """ 특정 함수가 일정 시간 내 실행되지 않으면 강제 종료하는 함수 """
@@ -30,36 +31,73 @@ def timeout_function(func, timeout=30, *args, **kwargs):
     def wrapper():
         try:
             start_time = time.time()
-            result[0] = func(*args, **kwargs)  # API 요청 실행
+            result[0] = func(*args, **kwargs)
             end_time = time.time()
             print(f"⏳ 실행 시간: {end_time - start_time:.2f}초")
         except Exception as e:
-            result[0] = e  # 예외 저장
+            result[0] = e
     
-    thread = threading.Thread(target=wrapper, daemon=True)  
+    thread = threading.Thread(target=wrapper, daemon=True)
     thread.start()
-    thread.join(timeout)  
-
-    if thread.is_alive():  
+    thread.join(timeout)
+    
+    if thread.is_alive():
         print("⚠️ 요청이 너무 오래 걸려 강제 종료합니다.")
         return TimeoutError("⚠️ 요청이 너무 오래 걸려 중단되었습니다.")
     
     return result[0]
 
-def wait_for_media_processing(media_id, timeout=30):
-    """업로드된 미디어가 완전히 처리될 때까지 대기"""
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        try:
-            media_status = mastodon.media(media_id)
-            if media_status['url']:  
-                print(f"✅ 미디어 업로드 완료: {media_status['url']}")
-                return True  
-        except Exception as e:
-            print(f"⚠️ 미디어 상태 확인 실패: {e}")
-        time.sleep(2)  
-    print(f"❌ 미디어 업로드 확인 시간 초과: {media_id}")
-    return False
+def split_and_post_results(image_links, text_results, max_links_per_post=4, notification=None):
+    """가챠 결과(이미지와 텍스트)를 여러 개의 툿으로 나눠서 올리기"""
+    id = notification['status']['id']
+    visibility = notification['status']['visibility']
+    previous_post = None
+    
+    # 텍스트 결과 먼저 툿에 올리기
+    if text_results:
+        text_post = f"상자를 열면......\n" + "\n".join(text_results)
+        if notification:
+            text_post = f"@{notification['account']['username']}\n" + text_post
+        
+        result = timeout_function(
+            mastodon.status_post, 30,
+            status=text_post,
+            in_reply_to_id=previous_post['id'] if previous_post else id,
+            visibility=visibility
+        )
+        
+        if isinstance(result, Exception):
+            print(f"⚠️ 텍스트 툿 업로드 실패: {result}")
+        else:
+            previous_post = result
+            print(f"✅ 텍스트 툿 업로드 완료: {previous_post}")
+        
+        time.sleep(3)
+    
+    # 이미지 링크 툿 나눠서 올리기 (파일명 포함)
+    for i in range(0, len(image_links), max_links_per_post):
+        post_text = "물건을 가져가자!\n"
+        for link, filename in image_links[i:i+max_links_per_post]:
+            post_text += f"{filename}: {link}\n"
+        
+        if notification:
+            post_text = f"@{notification['account']['username']}\n" + post_text
+        
+        result = timeout_function(
+            mastodon.status_post, 30,
+            status=post_text,
+            in_reply_to_id=previous_post['id'] if previous_post else None,
+            visibility=visibility
+        )
+        
+        if isinstance(result, Exception):
+            print(f"⚠️ 이미지 툿 업로드 실패: {result}")
+            continue
+        
+        previous_post = result  # 이전 툿을 스레드로 연결
+        print(f"✅ 이미지 툿 업로드 완료: {previous_post}")
+        time.sleep(3)
+
 
 class dgListener(StreamListener):
     def on_notification(self, notification):
@@ -110,74 +148,16 @@ class dgListener(StreamListener):
                 results = script.generate_gacha_results()
                 print(f"🎲 가챠 결과: {results}")
                 
-                # 이미지와 텍스트를 함께 묶어서 하나의 툿에 포함하도록 조정
-                image_batch = []
-                text_batch = []
+                # 가챠 결과에서 텍스트와 이미지 분리
+                text_results = [r for r in results if isinstance(r, str) and not r.startswith("http")]  # 텍스트만 분리
+                image_links = [(r, os.path.basename(r).split('.')[0]) for r in results if isinstance(r, str) and r.startswith("http")]  # (이미지 URL, 파일명)
                 
-                for item in results:
-                    if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                        image_batch.append(item)
-                    elif isinstance(item, str):  # 텍스트인 경우
-                        text_batch.append(item)
+                print(f"📦 정리된 가챠 이미지 링크: {image_links}")
+                print(f"📝 정리된 가챠 텍스트 결과: {text_results}")
                 
-                formatted_results = []
-                while image_batch:
-                    formatted_results.append((image_batch[:4], text_batch[:4]))  # 4개씩 묶어서 나누기
-                    image_batch = image_batch[4:]
-                    text_batch = text_batch[4:]
-                
-                if text_batch:
-                    formatted_results.append(([], text_batch))  # 텍스트를 하나의 툿으로 추가
-                
-                print(f"📦 정리된 가챠 결과: {formatted_results}")
-                
-                for image_group, text_group in formatted_results:
-                    media_ids = []
-                    image_names = []
-                    missing_images = []
-                    
-                    
-                    # 이미지 업로드 처리
-                    print(f"🖼️ 이미지 업로드 중... {image_group}")
-                    for item in image_group:
-                        if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                            result = timeout_function(mastodon.media_post, 200, item)
-                            if isinstance(result, Exception):
-                                print(f"⚠️ 이미지 업로드 실패: {result}")
-                                missing_images.append(os.path.splitext(os.path.basename(item))[0])
-                                continue
-                            media_id = result['id']
+                split_and_post_results(image_links, text_results, notification)
 
-                            if wait_for_media_processing(media_id):  
-                                media_ids.append(media_id)
-                                image_names.append(os.path.splitext(os.path.basename(item))[0])  
-                            else:
-                                print(f"❌ 미디어 업로드 확인 실패: {media_id}")
-                                missing_images.append(os.path.splitext(os.path.basename(item))[0])
-                                continue
 
-                        time.sleep(10)
-                        # 툿 작성 (이미지 파일명과 텍스트 출력)
-
-                    status_text = "@" + notification['account']['username'] + "\n"
-                    
-                    if image_names or text_group:
-                        status_text += "\n".join(image_names + text_group)
-                    else:
-                        status_text += 'ERR:02'
-
-                    if missing_images:
-                        status_text += f"\n⚠️ {', '.join(missing_images)}이(가) 나오지 않았어~!"
-        
-                    
-                    print(f"📤 툿 업로드 중... {status_text}")
-                    result = timeout_function(mastodon.status_post, 30, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
-                    if isinstance(result, Exception):
-                        print(f"⚠️ 툿 업로드 실패: {result}")
-                        continue
-                    
-                    print("✅ 툿 업로드 완료")
-                    time.sleep(5)
             else:
                 pass
         

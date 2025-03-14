@@ -317,37 +317,76 @@ def get_random_image(folder):
     files = [f for f in os.listdir(folder) if f.lower().endswith(('png'))]
     return os.path.join(folder, random.choice(files)) if files else None
 
+
+five = ['https://imgur.com/KrrWEOa',
+        'https://imgur.com/qNkNBlG',
+        'https://imgur.com/IsVAiVB',
+        'https://imgur.com/RmAFEBp']
+four = ['https://imgur.com/1bO6Rca',
+        'https://imgur.com/SNBWuag',
+        'https://imgur.com/14WeALZ',
+        'https://imgur.com/TMaZ50p',
+        'https://imgur.com/TocGht2',
+        'https://imgur.com/3ZlObcn',
+        'https://imgur.com/sYfD2Hi',
+        'https://imgur.com/Wen2X5l',
+        'https://imgur.com/kIIKZIu',
+        'https://imgur.com/WpVZEnj',
+        'https://imgur.com/GbBFb8k',
+        'https://imgur.com/wDbrxhv',
+        'https://imgur.com/0DoE5tQ',
+        'https://imgur.com/RPLTMCz',
+        'https://imgur.com/Jtp4sb6',
+        'https://imgur.com/DXTfbzb',
+        'https://imgur.com/oXSCbvu',
+        'https://imgur.com/8r8PWyY',
+        'https://imgur.com/TKKgBtj',
+        'https://imgur.com/CR438Wx',
+        'https://imgur.com/Smi38tj',
+        'https://imgur.com/htUP7Q1',
+        'https://imgur.com/ExfpoOk',
+        'https://imgur.com/CqvvnIK']
+three = ['https://imgur.com/QKyXZi7',
+         'https://imgur.com/d6bsiC9',
+         'https://imgur.com/cnwIWty',
+         'https://imgur.com/961sU7P',
+         'https://imgur.com/CqkIi4l',
+         'https://imgur.com/t8B0Mlx',
+         'https://imgur.com/x3kVLsm',
+         'https://imgur.com/HYRBYOB',
+         'https://imgur.com/WNNyFCm',
+         'https://imgur.com/LHT9BQm',
+         'https://imgur.com/2dXu3aE',
+         'https://imgur.com/ieStt4W',
+         'https://imgur.com/nhoKNcn',
+         'https://imgur.com/6PEYPk5',
+         'https://imgur.com/M623tDa',
+         'https://imgur.com/SlVTvX8',
+         'https://imgur.com/gXq5zFz',
+         'https://imgur.com/r83HA8k',
+         'https://imgur.com/V65h2rm',
+         'https://imgur.com/btAvKKM',
+         'https://imgur.com/FvFLzHx',
+         'https://imgur.com/kQpBwFJ',
+         'https://imgur.com/CJcRa2w',
+         'https://imgur.com/I6BCrmt',
+         'https://imgur.com/PxJOJVw',
+         'https://imgur.com/YCEWu2Y',
+         'https://imgur.com/plXLsGn',
+         'https://imgur.com/7GFFv0y']
+
 def generate_gacha_results():
     """가챠 결과 10개 생성"""
     results = []
     for _ in range(10):
         rand = random.random()
         if rand < 0.03:
-            results.append(get_random_image("./5성/"))  # 3% 확률
+            results.append(random.choice(five))  # 3% 확률
         elif rand < 0.13:
-            results.append(get_random_image("./4성/"))  # 10% 확률
+            results.append(random.choice(four))  # 10% 확률
         elif rand < 0.53:
-            results.append(get_random_image("./3성/"))  # 40% 확률
+            results.append(random.choice(three))  # 40% 확률
         else:
             results.append(random.choice(gacha))  # 나머지 확률
     return results
-
-def format_results(results):
-    """이미지 개수에 맞춰 툿을 나누는 함수"""
-    tweet_batches = []
-    current_batch = []
-    
-    for result in results:
-        if isinstance(result, str):  # 텍스트는 따로 저장
-            tweet_batches.append([result])
-        else:
-            current_batch.append(result)
-            if len(current_batch) == 4:  # 4개 이미지마다 새로운 툿 생성
-                tweet_batches.append(current_batch)
-                current_batch = []
-    
-    if current_batch:
-        tweet_batches.append(current_batch)  # 남은 이미지 처리
-    
-    return tweet_batches
 
