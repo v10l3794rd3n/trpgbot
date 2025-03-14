@@ -130,21 +130,21 @@ class dgListener(StreamListener):
                         image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
-                    status_text = "@" + notification['account']['username'] + "\n"
-                    
-                    if image_names or text_group:
-                        status_text += "\n".join(image_names + text_group)
-                    else:
-                        status_text += 'ERR:02'
-                    
-                    print(f"📤 툿 업로드 중... {status_text}")
-                    result = timeout_function(mastodon.status_post, 20, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
-                    if isinstance(result, Exception):
-                        print(f"⚠️ 툿 업로드 실패: {result}")
-                        continue
-                    
-                    print("✅ 툿 업로드 완료")
-                    time.sleep(2)
+                status_text = "@" + notification['account']['username'] + "\n"
+                
+                if image_names or text_group:
+                    status_text += "\n".join(image_names + text_group)
+                else:
+                    status_text += 'ERR:02'
+                
+                print(f"📤 툿 업로드 중... {status_text}")
+                result = timeout_function(mastodon.status_post, 20, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
+                if isinstance(result, Exception):
+                    print(f"⚠️ 툿 업로드 실패: {result}")
+                    continue
+                
+                print("✅ 툿 업로드 완료")
+                time.sleep(2)
             else:
                 pass
         
