@@ -134,8 +134,8 @@ class dgListener(StreamListener):
                         status_text += 'ERR:02'
                     
 
-                    result = timeout_function(mastodon.status_post, 10, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=previous_post['id'] if previous_post else None, visibility=visibility)
-                    time.sleep(2)
+                    result = timeout_function(mastodon.status_post, 10, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
+                    time.sleep(1)
                     if isinstance(result, Exception):
                         print(f"⚠️ 툿 업로드 실패: {result}")
                         traceback.print_exc()
