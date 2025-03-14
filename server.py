@@ -62,18 +62,35 @@ class dgListener(StreamListener):
                 mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
-            elif '[교환' in notification['status']['content']:
-                s = re.search(r"교환/(.*?)\]", notification['status']['content']).group(1)
-                answers = script.make_hgsmd_change_script(s, notification['account']['username'])
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[결과' in notification['status']['content']:
-                s = re.search(r"결과/(.*?)\]", notification['status']['content']).group(1)
-                answers = script.make_hgsmd_result_script(s, notification['account']['username'])
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
+            elif '[프롬]' in notification['status']['content']:
+                result = script.format_results(script.generate_gacha_results())
+                
+                previous_post = None
+                
+                for batch in result:
+                    media_ids = []
+                    text_content = []
+                    
+                    # 이미지 업로드 처리
+                    for item in batch:
+                        if os.path.exists(item):  # 이미지 파일인 경우
+                            media = mastodon.media_post(item)
+                            media_ids.append(media['id'])
+                        else:  # 텍스트인 경우
+                            text_content.append(item)
+                    
+                    # 툿 작성
+                    status_text = "@" + notification['account']['username'] + "\n"
+                    
+                    # 툿 업로드
+                    post_args = {
+                        "status": status_text,
+                        "media_ids": media_ids,
+                        "in_reply_to_id": previous_post['id'] if previous_post else None,
+                        "visibility": visibility
+                    }
+                    
+                    previous_post = mastodon.status_post(**post_args)
             else:
                 pass
         

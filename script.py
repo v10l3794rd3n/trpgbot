@@ -1,5 +1,6 @@
 import random
 import re
+import os
 
 # random.range(0, 3) : 1~2
 # random.choice(stat)
@@ -12,13 +13,13 @@ def make_script(pc_id):
     _surname = profile[_id][2]
 
     if _house == 'G': #이름
-        _script += f'"...제이가 걱정되는구나."'
+        _script += f'"프롬은 잘 보내고 있어, {_name}? 있지, 슬리데린 사감 교수님이..." 발걸음 소리에 말이 끊긴다.'
     elif _house == 'S': #성
-        _script += f'"{_surname}, 마법은 마법일 뿐이야. 기억해 둬."'
+        _script += f'"내가, 누군가한테, 편지를 썼다는 헛소문이 돌던데. 무시하도록."'
     elif _house == 'R': #이름
-        _script += f'"그 숲엔 용이 산다던데. ...내가 무슨 말을. 무시해 줘, {_name}!"'
+        _script += f'"누가 후플푸프 사감 교수님한테 고백했대... 어쩜 좋아, {_name}..."'
     elif _house == 'H': #성
-        _script += f'"초상화들이 기승이라는군, {_surname} 학생. 뭔가 아는 게 있나?"'
+        _script += f'"이 나이 먹고 결투장을 받다니. 참, 살고 볼 일일세."'
     else:
         return 'ERR:01 @ellipsis'
     
@@ -141,7 +142,6 @@ gacha = [
     '설탕 츄러스', '캐러멜' '부러진 깃펜', '로맨스 소설책', '거미모양 장난감','설탕 깃펜',
     '스니치', '넥타이', '연애편지', '뱀 허물', '썩은 달걀 맛 강낭콩 젤리', '정어리'
 ]
-
 
 def make_gacha_script(s):
     _script = ""
@@ -308,3 +308,46 @@ profile = {
     'Camila' : ['S', '카멜리아', '스칼렛', '가', '를'],
     'Serenity' : ['S', '세레니티', '마르티네즈', '가', '를']
 }
+
+
+def get_random_image(folder):
+    """폴더에서 랜덤한 이미지 파일을 선택"""
+    if not os.path.exists(folder):
+        return None
+    files = [f for f in os.listdir(folder) if f.lower().endswith(('png'))]
+    return os.path.join(folder, random.choice(files)) if files else None
+
+def generate_gacha_results():
+    """가챠 결과 10개 생성"""
+    results = []
+    for _ in range(10):
+        rand = random.random()
+        if rand < 0.03:
+            results.append(get_random_image("./5성/"))  # 3% 확률
+        elif rand < 0.13:
+            results.append(get_random_image("./4성/"))  # 10% 확률
+        elif rand < 0.53:
+            results.append(get_random_image("./3성/"))  # 40% 확률
+        else:
+            results.append(random.choice(gacha))  # 나머지 확률
+    return results
+
+def format_results(results):
+    """이미지 개수에 맞춰 툿을 나누는 함수"""
+    tweet_batches = []
+    current_batch = []
+    
+    for result in results:
+        if isinstance(result, str):  # 텍스트는 따로 저장
+            tweet_batches.append([result])
+        else:
+            current_batch.append(result)
+            if len(current_batch) == 4:  # 4개 이미지마다 새로운 툿 생성
+                tweet_batches.append(current_batch)
+                current_batch = []
+    
+    if current_batch:
+        tweet_batches.append(current_batch)  # 남은 이미지 처리
+    
+    return tweet_batches
+
