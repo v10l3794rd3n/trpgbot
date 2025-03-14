@@ -125,8 +125,6 @@ class dgListener(StreamListener):
                         traceback.print_exc()  # 오류 상세 출력
                         continue
 
-                    del image_batch[:]
-                    del text_content[:]
             else:
                 pass
         
