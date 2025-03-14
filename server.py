@@ -3,7 +3,7 @@ import http.server
 import socketserver
 import script
 import re
-import imghdr
+import mimetypes  # 기본 라이브러리 활용
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -18,7 +18,8 @@ mastodon = Mastodon(
 
 
 def is_valid_image(file_path):
-    return imghdr.what(file_path) in ['png']
+    mime_type, _ = mimetypes.guess_type(file_path)
+    return mime_type in ['image/png']
 
 
 class dgListener(StreamListener):
@@ -111,7 +112,7 @@ class dgListener(StreamListener):
                     if image_names or batch_text_content:
                         status_text += "\n".join(image_names + batch_text_content)
                     else:
-                        status_text += '톡, 톡... 누군가의 인형이 나왔다!'
+                        status_text += 'ERR:02'
                     
                     # 툿 업로드
                     post_args = {
