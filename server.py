@@ -141,7 +141,7 @@ class dgListener(StreamListener):
                     print(f"🖼️ 이미지 업로드 중... {image_group}")
                     for item in image_group:
                         if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                            result = timeout_function(mastodon.media_post, 30, item)
+                            result = timeout_function(mastodon.media_post, 200, item)
                             if isinstance(result, Exception):
                                 print(f"⚠️ 이미지 업로드 실패: {result}")
                                 missing_images.append(os.path.splitext(os.path.basename(item))[0])
