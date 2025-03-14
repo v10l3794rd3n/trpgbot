@@ -3,9 +3,9 @@ import http.server
 import socketserver
 import script
 import re
-import mimetypes  # 기본 라이브러리 활용
 import time
 import threading
+import urllib.parse
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -101,8 +101,8 @@ class dgListener(StreamListener):
                 
                 # 가챠 결과에서 텍스트와 이미지 분리
                 text_results = [r for r in results if isinstance(r, str) and not r.startswith("http")]  # 텍스트만 분리
-                image_links = [(r, os.path.basename(r).split('.')[0]) for r in results if isinstance(r, str) and r.startswith("http")]  # (이미지 URL, 파일명)
-                
+                image_links = [(r, os.path.splitext(os.path.basename(urllib.parse.unquote(r)))[0]) for r in results if isinstance(r, str) and r.startswith("http")]  # (이미지 URL, 한글 파일명 복원)
+    
                 print(f"📦 정리된 가챠 이미지 링크: {image_links}")
                 print(f"📝 정리된 가챠 텍스트 결과: {text_results}")
 
@@ -135,7 +135,8 @@ class dgListener(StreamListener):
                 for i in range(0, len(image_links), max_links_per_post):
                     post_text = "물건을 가져가자!\n"
                     for link, filename in image_links[i:i+max_links_per_post]:
-                        post_text += f"{filename}: {link}\n"
+                        decoded_filename = urllib.parse.unquote(filename)  # 한글 파일명 복원
+                        post_text += f"{decoded_filename}: {link}\n"
                     
                     if notification:
                         post_text = f"@{notification['account']['username']}\n" + post_text
@@ -143,7 +144,7 @@ class dgListener(StreamListener):
                     result = timeout_function(
                         mastodon.status_post, 30,
                         status=post_text,
-                        in_reply_to_id=previous_post['id'] if previous_post else id,
+                        in_reply_to_id=previous_post['id'] if previous_post else None,
                         visibility=visibility
                     )
                     
