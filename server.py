@@ -70,27 +70,30 @@ class dgListener(StreamListener):
                 for batch in result:
                     media_ids = []
                     text_content = []
+                    image_names = []
                     
                     # 이미지 업로드 처리
                     for item in batch:
                         if os.path.exists(item):  # 이미지 파일인 경우
                             media = mastodon.media_post(item)
                             media_ids.append(media['id'])
+                            image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
                         else:  # 텍스트인 경우
                             text_content.append(item)
                     
-                    # 툿 작성
-                    status_text = "@" + notification['account']['username'] + "\n"
-                    
-                    # 툿 업로드
-                    post_args = {
-                        "status": status_text,
-                        "media_ids": media_ids,
-                        "in_reply_to_id": previous_post['id'] if previous_post else None,
-                        "visibility": visibility
-                    }
-                    
-                    previous_post = mastodon.status_post(**post_args)
+                    # 툿 작성 (이미지 파일명과 텍스트 출력)
+                status_text = "@" + notification['account']['username'] + "\n"
+                status_text += "\n".join(image_names + text_content) if image_names or text_content else 'ERR:02'
+                
+                # 툿 업로드
+                post_args = {
+                    "status": status_text,
+                    "media_ids": media_ids,
+                    "in_reply_to_id": previous_post['id'] if previous_post else id,
+                    "visibility": visibility
+                }
+                
+                previous_post = mastodon.status_post(**post_args)
             else:
                 pass
         
