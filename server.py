@@ -63,8 +63,9 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[프롬]' in notification['status']['content']:
+
                 results = script.generate_gacha_results()
-    
+                
                 # 이미지와 텍스트를 함께 묶어서 하나의 툿에 포함하도록 조정
                 image_batch = []
                 text_content = []
@@ -86,6 +87,7 @@ class dgListener(StreamListener):
                 for batch in formatted_results:
                     media_ids = []
                     image_names = []
+                    batch_text_content = []  # 중복 방지용 텍스트 리스트
                     
                     # 이미지 업로드 처리
                     for item in batch:
@@ -94,13 +96,13 @@ class dgListener(StreamListener):
                             media_ids.append(media['id'])
                             image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
                         else:
-                            text_content.append(item)  # 텍스트 저장
+                            batch_text_content.append(item)  # 해당 배치에 속한 텍스트만 저장
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
                     status_text = "@" + notification['account']['username'] + "\n"
                     
-                    if image_names or text_content:
-                        status_text += "\n".join(image_names + text_content)
+                    if image_names or batch_text_content:
+                        status_text += "\n".join(image_names + batch_text_content)
                     else:
                         status_text += 'ERR:02'
                     
@@ -113,7 +115,6 @@ class dgListener(StreamListener):
                     }
                     
                     mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
-
 
             else:
                 pass
