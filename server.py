@@ -4,6 +4,7 @@ import socketserver
 import script
 import re
 import mimetypes  # 기본 라이브러리 활용
+import time
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -83,6 +84,7 @@ class dgListener(StreamListener):
                 while image_batch:
                     formatted_results.append(image_batch[:4])  # 4개씩 묶어서 나누기
                     image_batch = image_batch[4:]
+                    time.sleep(1)
                 
                 if text_content:
                     formatted_results.append(text_content)  # 텍스트를 하나의 툿으로 추가
@@ -99,10 +101,12 @@ class dgListener(StreamListener):
                                 media = mastodon.media_post(item)
                                 media_ids.append(media['id'])
                                 image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
+                                time.sleep(1)                           
                             except Exception as e:
                                 print(f"⚠️ 이미지 업로드 오류: {e}")  # 오류 발생 시 출력하고 해당 이미지 제외
                         else:
-                            batch_text_content.append(item)  # 해당 배치에 속한 텍스트만 저장
+                            batch_text_content.append(item)
+                            time.sleep(1)  # 해당 배치에 속한 텍스트만 저장
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
                     status_text = "@" + notification['account']['username'] + "\n"
@@ -113,6 +117,10 @@ class dgListener(StreamListener):
                         status_text += 'ERR:02'
                     
                     mastodon.status_post(status_text, in_reply_to_id=id, visibility=visibility, media_ids=media_ids)
+                    time.sleep(2)
+
+                    del image_batch[:]
+                    del text_content[:]
             else:
                 pass
         
