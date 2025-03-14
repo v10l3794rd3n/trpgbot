@@ -5,7 +5,6 @@ import script
 import re
 import mimetypes  # 기본 라이브러리 활용
 import time
-import traceback
 import threading
 
 from http import HTTPStatus
@@ -24,10 +23,10 @@ def is_valid_image(file_path):
     mime_type, _ = mimetypes.guess_type(file_path)
     return mime_type in ['image/png']
 
-def timeout_function(func, timeout=10, *args, **kwargs):
+def timeout_function(func, timeout=30, *args, **kwargs):
     """ 특정 함수가 일정 시간 내 실행되지 않으면 강제 종료하는 함수 """
     result = [None]
-
+    
     def wrapper():
         try:
             start_time = time.time()
@@ -37,15 +36,30 @@ def timeout_function(func, timeout=10, *args, **kwargs):
         except Exception as e:
             result[0] = e  # 예외 저장
     
-    thread = threading.Thread(target=wrapper, daemon=True)  # 🔥 스레드가 자동 종료되도록 설정
+    thread = threading.Thread(target=wrapper, daemon=True)  
     thread.start()
-    thread.join(timeout)  # 최대 `timeout` 초 동안 대기
-    
-    if thread.is_alive():  # 스레드가 아직 실행 중이라면?
+    thread.join(timeout)  
+
+    if thread.is_alive():  
         print("⚠️ 요청이 너무 오래 걸려 강제 종료합니다.")
         return TimeoutError("⚠️ 요청이 너무 오래 걸려 중단되었습니다.")
     
-    return result[0]  # 정상 응답 반환
+    return result[0]
+
+def wait_for_media_processing(media_id, timeout=30):
+    """업로드된 미디어가 완전히 처리될 때까지 대기"""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            media_status = mastodon.media(media_id)
+            if media_status['url']:  
+                print(f"✅ 미디어 업로드 완료: {media_status['url']}")
+                return True  
+        except Exception as e:
+            print(f"⚠️ 미디어 상태 확인 실패: {e}")
+        time.sleep(2)  
+    print(f"❌ 미디어 업로드 확인 시간 초과: {media_id}")
+    return False
 
 class dgListener(StreamListener):
     def on_notification(self, notification):
@@ -120,7 +134,7 @@ class dgListener(StreamListener):
                 for image_group, text_group in formatted_results:
                     media_ids = []
                     image_names = []
-
+                    missing_images = []
                     
                     
                     # 이미지 업로드 처리
@@ -130,10 +144,19 @@ class dgListener(StreamListener):
                             result = timeout_function(mastodon.media_post, 30, item)
                             if isinstance(result, Exception):
                                 print(f"⚠️ 이미지 업로드 실패: {result}")
+                                missing_images.append(os.path.splitext(os.path.basename(item))[0])
                                 continue
-                            media_ids.append(result['id'])
-                            image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
-                        time.sleep(5)
+                            media_id = result['id']
+
+                            if wait_for_media_processing(media_id):  
+                                media_ids.append(media_id)
+                                image_names.append(os.path.splitext(os.path.basename(item))[0])  
+                            else:
+                                print(f"❌ 미디어 업로드 확인 실패: {media_id}")
+                                missing_images.append(os.path.splitext(os.path.basename(item))[0])
+                                continue
+
+                        time.sleep(10)
                         # 툿 작성 (이미지 파일명과 텍스트 출력)
 
                     status_text = "@" + notification['account']['username'] + "\n"
@@ -142,15 +165,19 @@ class dgListener(StreamListener):
                         status_text += "\n".join(image_names + text_group)
                     else:
                         status_text += 'ERR:02'
+
+                    if missing_images:
+                        status_text += f"\n⚠️ {', '.join(missing_images)}이(가) 나오지 않았어~!"
+        
                     
                     print(f"📤 툿 업로드 중... {status_text}")
-                    result = timeout_function(mastodon.status_post, 20, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
+                    result = timeout_function(mastodon.status_post, 30, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
                     if isinstance(result, Exception):
                         print(f"⚠️ 툿 업로드 실패: {result}")
                         continue
                     
                     print("✅ 툿 업로드 완료")
-                    time.sleep(2)
+                    time.sleep(5)
             else:
                 pass
         
