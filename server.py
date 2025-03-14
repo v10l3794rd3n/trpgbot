@@ -101,11 +101,11 @@ class dgListener(StreamListener):
                 
                 formatted_results = []
                 while image_batch:
-                    formatted_results.append(image_batch[:4], [])  # 4개씩 묶어서 나누기
+                    formatted_results.append((image_batch[:4], []))  # 4개씩 묶어서 나누기
                     image_batch = image_batch[4:]
                 
                 if text_batch:
-                    formatted_results.append([], text_batch)  # 텍스트를 하나의 툿으로 추가
+                    formatted_results.append(([], text_batch))  # 텍스트를 하나의 툿으로 추가
                 
                 for image_group, text_group in formatted_results:
                     media_ids = []
