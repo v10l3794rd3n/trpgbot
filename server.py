@@ -25,7 +25,7 @@ def is_valid_image(file_path):
     return mime_type in ['image/png']
 
 def timeout_function(func, timeout=10, *args, **kwargs):
-    """ 특정 함수가 일정 시간 내 실행되지 않으면 중단하는 함수 """
+    """ 특정 함수가 일정 시간 내 실행되지 않으면 강제 종료하는 함수 """
     result = [None]
     
     def wrapper():
@@ -39,7 +39,9 @@ def timeout_function(func, timeout=10, *args, **kwargs):
     thread.join(timeout)
     
     if thread.is_alive():
+        print("⚠️ 요청이 너무 오래 걸려 강제 종료합니다.")
         return TimeoutError("⚠️ 요청이 너무 오래 걸려 중단되었습니다.")
+    
     return result[0]
 
 class dgListener(StreamListener):
@@ -87,7 +89,9 @@ class dgListener(StreamListener):
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
             elif '[프롬]' in notification['status']['content']:
+                print("🔍 가챠 결과 생성 중...")
                 results = script.generate_gacha_results()
+                print(f"🎲 가챠 결과: {results}")
                 
                 # 이미지와 텍스트를 함께 묶어서 하나의 툿에 포함하도록 조정
                 image_batch = []
@@ -101,17 +105,21 @@ class dgListener(StreamListener):
                 
                 formatted_results = []
                 while image_batch:
-                    formatted_results.append((image_batch[:4], []))  # 4개씩 묶어서 나누기
+                    formatted_results.append((image_batch[:4], text_batch[:4]))  # 4개씩 묶어서 나누기
                     image_batch = image_batch[4:]
+                    text_batch = text_batch[4:]
                 
                 if text_batch:
                     formatted_results.append(([], text_batch))  # 텍스트를 하나의 툿으로 추가
+                
+                print(f"📦 정리된 가챠 결과: {formatted_results}")
                 
                 for image_group, text_group in formatted_results:
                     media_ids = []
                     image_names = []
                     
                     # 이미지 업로드 처리
+                print(f"🖼️ 이미지 업로드 중... {image_group}")
                 for item in image_group:
                     if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
                         result = timeout_function(mastodon.media_post, 10, item)
@@ -129,12 +137,13 @@ class dgListener(StreamListener):
                     else:
                         status_text += 'ERR:02'
                     
-
+                    print(f"📤 툿 업로드 중... {status_text}")
                     result = timeout_function(mastodon.status_post, 20, status=status_text, media_ids=media_ids if media_ids else None, in_reply_to_id=id, visibility=visibility)
                     if isinstance(result, Exception):
                         print(f"⚠️ 툿 업로드 실패: {result}")
                         continue
                     
+                    print("✅ 툿 업로드 완료")
                     time.sleep(2)
             else:
                 pass
