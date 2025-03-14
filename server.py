@@ -23,8 +23,6 @@ def is_valid_image(file_path):
 
 
 class dgListener(StreamListener):
-
-
     def on_notification(self, notification):
         print('on_notification')
         if notification['type'] == 'mention':
@@ -114,15 +112,7 @@ class dgListener(StreamListener):
                     else:
                         status_text += 'ERR:02'
                     
-                    # 툿 업로드
-                    post_args = {
-                        "status": status_text,
-                        "media_ids": media_ids if media_ids else None,
-                        "in_reply_to_id": id,
-                        "visibility": visibility
-                    }
-                    
-                    mastodon.status_post(**{k: v for k, v in post_args.items() if v is not None})
+                    mastodon.status_post(status_text, in_reply_to_id=id, visibility=visibility, media_ids=media_ids)
             else:
                 pass
         
