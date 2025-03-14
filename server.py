@@ -6,6 +6,7 @@ import re
 import mimetypes  # 기본 라이브러리 활용
 import time
 import traceback
+import threading
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -23,6 +24,23 @@ def is_valid_image(file_path):
     mime_type, _ = mimetypes.guess_type(file_path)
     return mime_type in ['image/png']
 
+def timeout_function(func, args=(), timeout=30):
+    """ 특정 함수가 일정 시간 내 실행되지 않으면 중단하는 함수 """
+    result = [None]
+    
+    def wrapper():
+        try:
+            result[0] = func(*args)
+        except Exception as e:
+            result[0] = e
+    
+    thread = threading.Thread(target=wrapper)
+    thread.start()
+    thread.join(timeout)
+    
+    if thread.is_alive():
+        return TimeoutError("⚠️ 요청이 너무 오래 걸려 중단되었습니다.")
+    return result[0]
 
 class dgListener(StreamListener):
     def on_notification(self, notification):
@@ -85,7 +103,6 @@ class dgListener(StreamListener):
                 while image_batch:
                     formatted_results.append(image_batch[:4])  # 4개씩 묶어서 나누기
                     image_batch = image_batch[4:]
-                    time.sleep(1)
                 
                 if text_content:
                     formatted_results.append(text_content)  # 텍스트를 하나의 툿으로 추가
@@ -96,18 +113,17 @@ class dgListener(StreamListener):
                     batch_text_content = []  # 중복 방지용 텍스트 리스트
                     
                     # 이미지 업로드 처리
-                    for item in batch:
-                        if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
-                            try:
-                                media = mastodon.media_post(item)
-                                media_ids.append(media['id'])
-                                image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
-                                time.sleep(1)                           
-                            except Exception as e:
-                                print(f"⚠️ 이미지 업로드 오류: {e}")  # 오류 발생 시 출력하고 해당 이미지 제외
-                        else:
-                            batch_text_content.append(item)
-                            time.sleep(1)  # 해당 배치에 속한 텍스트만 저장
+                for item in batch:
+                    if os.path.exists(item) and is_valid_image(item):  # 올바른 이미지인지 확인
+                        result = timeout_function(mastodon.media_post, (item,), timeout=20)
+                        if isinstance(result, Exception):
+                            print(f"⚠️ 이미지 업로드 실패: {result}")
+                            continue
+                        media_ids.append(result['id'])
+                        image_names.append(os.path.splitext(os.path.basename(item))[0])  # 확장자 제외 파일명 저장
+                        time.sleep(1)
+                    else:
+                        batch_text_content.append(item)  # 해당 배치에 속한 텍스트만 저장
                     
                     # 툿 작성 (이미지 파일명과 텍스트 출력)
                     status_text = "@" + notification['account']['username'] + "\n"
@@ -117,13 +133,20 @@ class dgListener(StreamListener):
                     else:
                         status_text += 'ERR:02'
                     
-                    try:
-                        mastodon.status_post(status_text, in_reply_to_id=id, visibility=visibility, media_ids=media_ids)
-                        time.sleep(2)
-                    except Exception as e:
-                        print(f"⚠️ 툿 업로드 실패: {e}")
-                        traceback.print_exc()  # 오류 상세 출력
+                    post_args = {
+                        "status": status_text,
+                        "media_ids": media_ids if media_ids else None,
+                        "in_reply_to_id": id,
+                        "visibility": visibility
+                    }
+                    
+                    result = timeout_function(mastodon.status_post, (post_args,), timeout=30)
+                    if isinstance(result, Exception):
+                        print(f"⚠️ 툿 업로드 실패: {result}")
+                        traceback.print_exc()
                         continue
+
+                    time.sleep(2)
 
             else:
                 pass
