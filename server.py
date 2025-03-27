@@ -6,6 +6,7 @@ import re
 import time
 import threading
 import urllib.parse
+import random
 
 from http import HTTPStatus
 from mastodon import Mastodon
@@ -14,15 +15,10 @@ from mastodon.streaming import StreamListener
 
 # Create an instance of the Mastodon class
 mastodon = Mastodon(
-    access_token='QkFO1MAAdVPjlBLzgtewEatRfc6KAG2RFGv_9iWfpME',
-    api_base_url='https://ellipsishgwt.com'
+    access_token='Smv3musvnx_dpoehgY1K9xI76LqDKFU5ojL1L7nd1rA',
+    api_base_url='https://ododok.life'
 )
 
-
-
-def generate_drive_link(file_id):
-    """Google Drive 공유 링크를 Direct Image Link로 변환"""
-    return f"https://drive.google.com/uc?export=view&id={file_id}"
 
 def timeout_function(func, timeout=30, *args, **kwargs):
     """ 특정 함수가 일정 시간 내 실행되지 않으면 강제 종료하는 함수 """
@@ -56,107 +52,75 @@ class dgListener(StreamListener):
         if notification['type'] == 'mention':
             print('mention')
             id = notification['status']['id']
+            user = notification['account']['username']
             visibility = notification['status']['visibility']
-            if '[출석]' in notification['status']['content']:
-                answers = script.make_script(notification['account']['username'])
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[탐색' in notification['status']['content']:
-                s = re.search(r"탐색/(.*?)\]", notification['status']['content']).group(1)
-                #s = [int(s) for s in re.findall(r"-?\d+\.?\d*", notification['status']['content'])]
-                answers = script.make_farming_script(notification['account']['username'], s)
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[상점' in notification['status']['content']:
-                s = re.search(r"상점/(.*?)\]", notification['status']['content']).group(1)
-                answers = script.make_store_script(notification['account']['username'], s)
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[랜덤박스' in notification['status']['content'] or '[랜덤 박스' in notification['status']['content']:
-                s = [int(s) for s in re.findall(r"-?\d+\.?\d*", notification['status']['content'])]
-                answers = script.make_gacha_script(s[0])
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[인벤토리' in notification['status']['content']:
-                s = re.search(r"인벤토리/(.*?)\]", notification['status']['content']).group(1)
-                answers = script.make_inventory_script(s)
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[마법약' in notification['status']['content']:
-                s = re.search(r'\[.*?/([^/\]]+)/.*?\]', notification['status']['content']).group(1)
-                potion = re.search(r'\[.*?/(.*?)/([^/\]]+)\]', notification['status']['content']).group(2)
-                answers = script.make_potion_script(s, potion)
-                mastodon.status_post("@" + notification['account']['username'] + "  " + 
-                            answers, in_reply_to_id = id, 
-                            visibility = visibility)
-            elif '[프롬]' in notification['status']['content']:
-                print("🔍 가챠 결과 생성 중...")
-                results = script.generate_gacha_results()
-                print(f"🎲 가챠 결과: {results}")
-                
-                # 가챠 결과에서 텍스트와 이미지 분리
-                text_results = [r for r in results if isinstance(r, str) and not r.startswith("http")]  # 텍스트만 분리
-                image_links = [(r, os.path.splitext(os.path.basename(urllib.parse.unquote(r)))[0]) for r in results if isinstance(r, str) and r.startswith("http")]  # (이미지 URL, 한글 파일명 복원)
-                
-                print(f"📦 정리된 가챠 이미지 링크: {image_links}")
-                print(f"📝 정리된 가챠 텍스트 결과: {text_results}")
-
-                """가챠 결과(이미지와 텍스트)를 여러 개의 툿으로 나눠서 올리기"""
-                previous_post = None
-                max_links_per_post = 4
-                
-                # 텍스트 결과 먼저 툿에 올리기
-                if text_results:
-                    text_post = f"상자를 열면......\n" + "\n".join(text_results)
-                    if notification:
-                        text_post = f"@{notification['account']['username']}\n" + text_post
-                    
-                    result = timeout_function(
-                        mastodon.status_post, 30,
-                        status=text_post,
-                        in_reply_to_id=previous_post['id'] if previous_post else id,
-                        visibility=visibility
-                    )
-                    
-                    if isinstance(result, Exception):
-                        print(f"⚠️ 텍스트 툿 업로드 실패: {result}")
+            if '[CoC]' in notification['status']['content']:
+                if '[광기]' in notification['status']['content']:                
+                    if '[실시간]' in notification['status']['content']:
+                        answers = script.CoC_insane_now()
+                    elif '[요약]' in notification['status']['content']:
+                        answers = script.CoC_insane_summary()
+                if '[피해]' in notification['status']['content']:
+                    pattern = r"""
+                        \[\s*[^]]*?\s*\]             # 첫 번째 태그 무시 ([피해] 등)
+                        \[\s*([^\[\]+\-0-9\s]+)      # 기술명 (예: 단검)
+                        \s*([+-]\s*\d+)?\s*\]        # 보정값 (예: -1, +2), 없을 수도 있음
+                        (?:\s*\[\s*([^\[\]]+)\s*\])? # 속성 (예: 치명타), 없을 수도 있음
+                    """
+                    match = re.search(pattern, notification['status']['content'], re.VERBOSE)
+                    if match:
+                        skill = match.group(1)
+                        modifier = match.group(2).replace(" ", "") if match.group(2) else "0"
+                        tag = match.group(3) or None
+                        answers = script.CoC_damage(user, skill, modifier, tag)
                     else:
-                        previous_post = result
-                        print(f"✅ 텍스트 툿 업로드 완료: {previous_post}")
-                    
-                    time.sleep(3)
-                
-                # 이미지 링크 툿 나눠서 올리기 (파일명 포함)
-                for i in range(0, len(image_links), max_links_per_post):
-                    post_text = "물건을 가져가자!\n"
-                    for link, filename in image_links[i:i+max_links_per_post]:
-                        post_text += f"{link}\n"
-                    
-                    if notification:
-                        post_text = f"@{notification['account']['username']}\n" + post_text
-                    
-                    result = timeout_function(
-                        mastodon.status_post, 30,
-                        status=post_text,
-                        in_reply_to_id=previous_post['id'] if previous_post else None,
-                        visibility=visibility
-                    )
-                    
-                    if isinstance(result, Exception):
-                        print(f"⚠️ 이미지 툿 업로드 실패: {result}")
-                        continue
-                    
-                    previous_post = result  # 이전 툿을 스레드로 연결
-                    print(f"✅ 이미지 툿 업로드 완료: {previous_post}")
-                    time.sleep(3)
-
+                        print("❗ [피해]를 이해하지 못했어.")
+                    pass
+                else:
+                    match = re.search(r"\[\s*([^\[\]+\-\s]+)\s*([+-])\s*(\d+)\s*\]|\[\s*([^\[\]+\-\s]+)\s*\]", notification['status']['content'])
+                    if match:
+                        skill = match.group(1) or match.group(3)
+                        if match.group(2) and match.group(3):
+                            modifier = f"{match.group(2)}{match.group(3)}"
+                        else:
+                            modifier = "0"
+                        stat = ['근력', '건강', '크기', '민첩', '외모', '지능', '정신', '교육']
+                        if skill in stat:
+                            answers = script.CoC_stat(user, skill, int(modifier))
+                        elif skill == '이성':
+                            # 1. 계정 정보 가져오기
+                            account = mastodon.account(notification['account']['id'])
+                            # 2. 부가 필드 중 "SAN" 찾기
+                            for field in account.get('fields', []):
+                                if field.get('name', '').strip().upper() == 'SAN':
+                                    raw_value = field.get('value', '')
+                                    # HTML 태그 제거
+                                    text = re.sub(r'<.*?>', '', raw_value)
+                                    # 숫자 추출
+                                    match = re.search(r'\d+', text)
+                                    if match:
+                                        sanity = int(match.group())
+                            answers = script.CoC_sanity(sanity, int(modifier))
+                        else:
+                            answers = script.CoC_skill(id, skill, int(modifier))
+                    else:
+                        print("❗ [기능]을 이해하지 못했어.")  
+            elif "[choice" in notification['status']['content']:
+                match = re.search(r"\[choice\((.*?)\)\]", text)
+                if match:
+                    options = match.group(1).split('/')
+                    result = random.choice([opt.strip() for opt in options])
+                    answers = f"🔀 {result}"
             else:
-                pass
+                match = re.search(r"\[([^\[\]]+)\]", text)
+                if match:
+                    dice_expr = match.group(1)
+                    r, max_r, rolls = script.roll_dice_expression(dice_expr)
+                    answers = f"🎲 {dice_expr} = {rolls} → {r}"
+            
+            mastodon.status_post("@" + notification['account']['username'] + "  " + 
+                            answers, in_reply_to_id = id, 
+                            visibility = visibility)
         
         
 

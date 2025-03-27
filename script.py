@@ -1,392 +1,353 @@
 import random
 import re
 import os
+import openpyxl
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.utils import column_index_from_string, get_column_letter
+from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
+
 
 # random.range(0, 3) : 1~2
 # random.choice(stat)
 
-def make_script(pc_id):
-    _script = ""
-    _id = pc_id
-    _house = profile[_id][0]
-    _name = profile[_id][1]
-    _surname = profile[_id][2]
+## 공통 함수
 
-    if _house == 'G': #이름
-        _script += f'"프롬은 잘 보내고 있어, {_name}? 있지, 슬리데린 사감 교수님이..." 발걸음 소리에 말이 끊긴다.'
-    elif _house == 'S': #성
-        _script += f'"내가, 누군가한테, 편지를 썼다는 헛소문이 돌던데. 무시하도록."'
-    elif _house == 'R': #이름
-        _script += f'"누가 후플푸프 사감 교수님한테 고백했대... 어쩜 좋아, {_name}..."'
-    elif _house == 'H': #성
-        _script += f'"이 나이 먹고 결투장을 받다니. 참, 살고 볼 일일세."'
-    else:
-        return 'ERR:01 @ellipsis'
-    
-    _script += f'\n\n{_name}에게 1갈레온이 지급됩니다.'
+def find_cell_by_value(ws, keyword):
+    for row in ws.iter_rows():
+        for cell in row:
+            if cell.value == keyword:
+                return cell.coordinate  # 예: 'B2'
 
-    return _script
+    return None  # 찾지 못했을 경우
 
+def shift_cell(cell_ref: str, right=0, down=0) -> str:
+    col_letter, row = coordinate_from_string(cell_ref)
+    col_index = column_index_from_string(col_letter)
 
-farming = [
-    '틈새에서 갈레온을 하나 발견합니다. 야호. 갈레온 +1',
-    '이상한 상자를 열어 보면... 갈레온이 하나 있습니다. 갈레온 +1',
-    '천 사이에 싸여 있던 갈레온을 하나 발견했습니다. 갈레온 +1',
-    '이건... 호클럼프 즙이군요. 신기한 걸 찾았습니다. 호클럼프 즙 +1',
-    '병을 하나 발견합니다. 안에 든 건... 호클럼프 즙 같네요. 호클럼프 즙 +1',
-    '시원한 냄새가 납니다. 박하 잎을 하나 찾습니다. 박하 잎 +1',
-    '정원 같은 구역을 발견합니다. 박하 잎을 하나 땄습니다. 박하 잎 +1',
-    '이상한 털이네요. 어디에 쓰는 걸까요? 거미 털 +1',
-    '이런 것도 마법약에 쓰이는 거겠죠? 거미 털 +1',
-    '벽에 흰 버섯이 자라 있습니다. 이건... 독버섯 갓 +1',
-    '물건 사이사이로 흰 버섯이 보입니다. 독버섯 갓 +1',
-    '무언가 날아다닙니다... 잡았다! 풀잠자리 +1',
-    '이것도 필요할까요? 하지만 잡았습니다. 풀잠자리 +1',
-    '식물이 난 구역을 발견합니다. 보름초 줄기 +1',
-    '유리병 안에 풀이 가득 담겨 있네요. 보름초 줄기 +1'
-]
+    new_col_index = col_index + right
+    new_row = row + down
 
-def parse_string_to_dict(s: str) -> dict:
-    pattern = re.findall(r'([a-zA-Z])(\d+)', s)  # 문자와 숫자를 그룹화하여 찾기
-    parsed_dict = dict((char, int(num)) for char, num in pattern)  # 명확한 dict 변환
-    return parsed_dict
+    if new_col_index < 1 or new_row < 1:
+        raise ValueError("엑셀 범위를 벗어났습니다.")
 
-def decimal_to_hex(decimal_number):
-    return hex(int(decimal_number))[2:]
+    new_col_letter = get_column_letter(new_col_index)
+    return f"{new_col_letter}{new_row}"
 
-def hex_to_decimal(hex_string):
-    return int(hex_string, 16)
-
-def dict_to_hex_string(d):
-    return ''.join(f"{key}{int(value)}" for key, value in sorted(d.items()))
-
-
-def make_farming_script(pc_id, code):
-    _script = ""
-    _id = pc_id
-    _code = decimal_to_hex(code) # 10진법을 16진법으로 변환
-
-    _inventory = parse_string_to_dict(_code)
-
-#    s = re.search(r"a/(.*?)\]", _code)
-    
-    _name = profile[_id][1]
-    _ga = profile[_id][3]
-
-    _script += f'{_name}{_ga} 필요의 방을 뒤적거립니다.\n\n'
-    _farming = random.choice(farming)
-
-    if '호클럼프 즙' in _farming:
-        _inventory['a'] += 1
-    elif '박하 잎' in _farming:
-        _inventory['b'] += 1
-    elif '거미 털' in _farming:
-        _inventory['c'] += 1
-    elif '독버섯 갓' in _farming:
-        _inventory['d'] += 1
-    elif '풀잠자리' in _farming:
-        _inventory['e'] += 1
-    elif '보름초 줄기' in _farming:
-        _inventory['f'] += 1
-
-    _script += _farming
-
-    _code = dict_to_hex_string(_inventory)
-    _code = hex_to_decimal(_code)
-
-    _script += f'\n\n인벤토리 코드: {_code}'
-
-    return _script
-
-store = [
-    '"구매 고마워!" 선배가 갈레온을 셉니다.',
-    '"근데, 그거 어디에 쓸 거야?" 선배가 묻습니다.',
-    '선배가 물건을 내어줍니다. "이걸로 내 일확천금의 꿈으로 더 가까이..." 일확천금은 그런 뜻이 아닐 텐데?!',
-    '"휴, 얼마 전엔 교수님한테 들킬 뻔 했잖아." 선배가 툴툴댑니다.',
-    '"감사합니다, 고객님! 자, 여깄어."'
-]
-
-def make_store_script(pc_id, goods):
-    _script = ""
-    _id = pc_id
-    _goods = goods
-    
-    _name = profile[_id][1]
-    _ga = profile[_id][3]
-
-    _script += f'{_name}{_ga} 상점에서 물건을 삽니다. {_goods}... 어디에 써 볼까요?\n\n'
-    _script += random.choice(store)
-
-    return _script
-
-
-gacha = [
-    '포도사탕', '용 모양 미니어처', '[용사 이야기]라는 제목의 동화책', '반지', '목걸이', '스카프', '리본', '나비 머리핀', '새(bird) 인형',
-    '설탕 깃펜', '피징 위즈비', '비법 노트', '들꽃', '설탕에 절인 제비꽃', '감초사탕', '가짜 손', '물감', '초콜릿',
-    '딸기 케이크', '만년필', '잉크', '애플시나몬파이',
-    '쿠키', '화분', '흰색 깃펜', '설탕 캔디', '손거울', '시트러스 향 향수', '레몬잼', '토스트', '새 모형',
-    '솜사탕', '파란 리본', '미니 플라네타리움', '사탕 단지', '꿀을 넣은 패스츄리', '병아리 인형',
-    '두꺼운 책' , '소라껍데기' , '반짝이는 보석', '손수건', '만년필', '은하수 모형', 
-    '드림캐쳐', '옴니큘러', '움직이는 동물 모양 액션 피겨', '토마토 카프레제', '골동품 시계' '스노우 볼',
-    '마시멜로우 핫초코','속기 깃펜','두꺼운 논문 책', '귀마개', '인형', '커피', '테오도르 증명사진' , '사진첩' , '잉크',
-    '수르스트뢰밍', '[마법사에 대한 고찰]이라는 제목의 글씨가 많고 두꺼운 책', '사탕 모양 장식품',
-    '파리채', '해면 수세미', '벌어진 칫솔', '구토맛 젤리', '매운 맛 사탕', '부부젤라',
-    '커피', '감초 맛 사탕', '바퀴벌레 과자', '구토맛 젤리', '회초리', '칼',
-    '샐러드', '백과사전',
-    '감초 사탕', '정어리 파이',
-    '당근젤리', '태엽인형', '가십지', '블랙 푸딩', '조화(造花)', '달팽이',
-    '금화 초콜릿', '모조 보석', '인테리어 소품', '과제', '오트밀', '루빅스 큐브',
-    '귀지맛 젤리', '구토맛 젤리', '먹음직스러운 가짜 사탕', '거대 바퀴벌레 모형',
-    '벌레 모형', '키가 쑥쑥! 성장 발육제', '깜짝 상자', '시끄러운 장난감' , '미지근한 우유' , '찢어진 책',
-    '감초사탕', '하울러', '마법사 체스세트', '흙 맛 젤리빈', '하울러', '폭탄카드',
-    '설탕 츄러스', '캐러멜', '부러진 깃펜', '로맨스 소설책', '거미모양 장난감','설탕 깃펜',
-    '스니치', '넥타이', '연애편지', '뱀 허물', '썩은 달걀 맛 강낭콩 젤리', '정어리'
-]
-
-def make_gacha_script(s):
-    _script = ""
-    _script += '랜덤박스를 열면, 그 안에는...\n\n'
-    for n in range(s):
-        _script += '짜잔! ' + random.choice(gacha) +'!\n'
-    _script += '\n물론, 어디까지나 장난감이지만!'
-
-    return _script
-
-def make_inventory_script(s):
-    _script = ""
-    _code = decimal_to_hex(s) # 10진법을 16진법으로 변환
-
-    _inventory = parse_string_to_dict(_code)
-
-    s = re.search(r"a/(.*?)\]", _code)
-    
-
-    _script += '현재 소지 재료\n\n'
-    _script += f'호클럼프 즙: {_inventory['a']}\n'
-    _script += f'박하 잎: {_inventory['b']}\n'
-    _script += f'거미 털: {_inventory['c']}\n'
-    _script += f'독버섯 갓: {_inventory['d']}\n'
-    _script += f'풀잠자리: {_inventory['e']}\n'
-    _script += f'보름초 줄기: {_inventory['f']}\n'
-
-    return _script
-
-def make_potion_script(s, potion):
-    _script = ""
-    _code = decimal_to_hex(s)  # 10진법을 16진법으로 변환
-    _potion = potion
-
-    print(f"🎯 원본 10진수 인벤토리 코드: {s}")
-    print(f"🎯 변환된 16진수 인벤토리 코드: {_code}")
-
-    _inventory = parse_string_to_dict(_code)
-
-    print(f"🎯 16진수를 딕셔너리로 변환한 결과: {_inventory}")
-
-    _script += f'{_potion}, 만들어 봅시다!\n\n'
-
-    potion_requirements = {
-        '아르부스': {'a': 2, 'b': 1},
-        '파이제논': {'e': 2, 'f': 1},
-        '폴리주스': {'b': 2, 'c': 1},
-        '티르소스': {'c': 2, 'd': 1},
-        '비즈둔': {'d': 2, 'e': 1},
-        '메이고르': {'f': 2, 'a': 1}
-    }
-
-    if _potion not in potion_requirements:
-        _script += '혹시 마법약 이름을 틀리진 않았을까?'
-        return _script
-
-    requirements = potion_requirements[_potion]
-
-    for ingredient, amount in requirements.items():
-        if _inventory.get(ingredient, 0) < amount:
-            _script += '재료가 부족해! 다시 확인해 보자.'
-            return _script
-
-    for ingredient, amount in requirements.items():
-        _inventory[ingredient] -= amount
-
-    potion_effects = {
-        '아르부스': '이제 둥둥 떠다닐 수 있어!',
-        '파이제논': '이걸로 공부의 신이 되자.',
-        '폴리주스': '머리카락만 슬쩍 훔쳐오면 나도...',
-        '티르소스': '이제 졸아도 안 들킨다고!',
-        '비즈둔': '초코가 좋아.',
-        '메이고르': '이걸로 좋은 하루가 될 거야!'
-    }
-    
-    _script += potion_effects[_potion]
-
-    _code = dict_to_hex_string(_inventory)
-    print(f"🎯 수정된 딕셔너리를 16진수로 변환한 결과: {_code}")
-
-    _code = hex_to_decimal(_code)
-    print(f"🎯 최종적으로 변환된 10진수 인벤토리 코드: {_code}")
-
-    _script += f'\n\n인벤토리 코드: {_code}'
-
-    return _script
-
-
-
-card = {
-    '아라벨라': '빗자루',
-    '트루먼': '지팡이',
-    '리키': '빗자루',
-    '펠릭스': '지팡이',
-    '다아시': '빗자루',
-    '테오도르': '지팡이',
-    '엘리오르': '빗자루',
-    '에셀레드': '지팡이',
-    '리아트리스': '빗자루',
-    '노라': '지팡이',
-    '벤자민': '빗자루',
-    '나샤렛': '지팡이',
-    '에블린': '빗자루',
-    '이엔': '지팡이',
-    '러셀': '빗자루',
-    '주노': '지팡이',
-    '에밀리': '빗자루',
-    '애슈턴': '지팡이',
-    '이사야': '빗자루',
-    '밋치': '지팡이',
-    '일': '빗자루',
-    '아니카': '지팡이'
-}
-
-def make_hgsmd_change_script(s, id):
-    _name = s
-    _changer = profile[id][1]
-    _script = '서로 카드를 바꿉니다. 무슨 일이 일어날까요?'
-
-    save = card[_changer]
-    card[_changer] = card[_name]
-    card[_name] = save
-
-    print(card)
-
-    return _script
-
-def make_hgsmd_result_script(s, id):
-    _name = profile[id][1]
-    _script = f'정답은... {card[_name]}!\n\n'
-
-    if s == card[_name]:
-        _script += '정답! 선물을 받아가자.\n\n스토리 계정으로 멘션 부탁드립니다.'
-    else:
-        _script += '오답! 아쉽게 됐다... 1갈레온을 획득합니다.'
-
-    return _script
-    
-
-profile = {
-    'Arabella': ['G', '아라벨라', '아라벨라', '가', '를'],
-    'Truman_Adams': ['H', '트루먼', '애덤스', '이', '을'],
-    'Ricky': ['S', '리키', '에어드', '가', '를'],
-    'FelixPB': ['S', '펠릭스', '베넷', '가', '를'],
-    'DarcyIsm': ['G', '다아시', '이즈멜', '가', '를'],
-    'TEO928': ['R', '테오도르', '러셀', '가', '를'],
-    'Elior': ['R', '엘리오르', '티모테우스', '가', '를'],
-    'Eddy_M': ['R', '에셀레드', '무어', '가', '를'],
-    'psyche_lin': ['G', '리아트리스', '스노우', '가', '를'],
-    'NoraHolloway': ['H', '노라', '할로웨이', '가', '를'],
-    '6enjqm1n22': ['H', '벤자민', '로크', '이', '을'],
-    'nasaret': ['G', '나샤렛', '브링클리', '이', '을'],
-    'Evelyn': ['R', '에블린', '페레즈', '이', '을'],
-    'En_L': ['H', '이엔', '레인', '이', '을'],
-    '_RP_00': ['S', '러셀', '패트릭', '이', '을'],
-    'jono': ['R', '주노', '바브렉', '가', '를'],
-    'EmilyLT': ['H', '에밀리', '로랑', '가', '를'],
-    'AG': ['S', '애슈턴', '매버릭', '이', '을'],
-    'Isaiah_': ['R', '이사야', '서머스', '가', '를'],
-    'Mitch': ['R', '밋치', '린도', '가', '를'],
-    '3_lines': ['H', '일', '커스버트슨', '이', '을'],
-    'anika': ['G', '아니카', '리', '가', '를'],
-    'mmm': ['S', '미마스', '모링턴', '가', '를'],
-    'Camila' : ['S', '카멜리아', '스칼렛', '가', '를'],
-    'Serenity' : ['S', '세레니티', '마르티네즈', '가', '를']
-}
-
-
-def get_random_image(folder):
-    """폴더에서 랜덤한 이미지 파일을 선택"""
-    if not os.path.exists(folder):
+def get_shifted_cell_value(ws, base_cell: str, right=0, down=0):
+    try:
+        target_cell = shift_cell(base_cell, right, down)
+        return ws[target_cell].value
+    except ValueError as e:
+        print(f"에러: {e}")
         return None
-    files = [f for f in os.listdir(folder) if f.lower().endswith(('png'))]
-    return os.path.join(folder, random.choice(files)) if files else None
 
 
-five = ['https://i.imgur.com/KrrWEOa.png',
-        'https://i.imgur.com/qNkNBlG.png',
-        'https://i.imgur.com/IsVAiVB.png',
-        'https://i.imgur.com/RmAFEBp.png']
-four = ['https://i.imgur.com/1bO6Rca.png',
-        'https://i.imgur.com/SNBWuag.png',
-        'https://i.imgur.com/14WeALZ.png',
-        'https://i.imgur.com/TMaZ50p.png',
-        'https://i.imgur.com/TocGht2.png',
-        'https://i.imgur.com/3ZlObcn.png',
-        'https://i.imgur.com/sYfD2Hi.png',
-        'https://i.imgur.com/Wen2X5l.png',
-        'https://i.imgur.com/kIIKZIu.png',
-        'https://i.imgur.com/WpVZEnj.png',
-        'https://i.imgur.com/GbBFb8k.png',
-        'https://i.imgur.com/wDbrxhv.png',
-        'https://i.imgur.com/0DoE5tQ.png',
-        'https://i.imgur.com/RPLTMCz.png',
-        'https://i.imgur.com/Jtp4sb6.png',
-        'https://i.imgur.com/DXTfbzb.png',
-        'https://i.imgur.com/oXSCbvu.png',
-        'https://i.imgur.com/8r8PWyY.png',
-        'https://i.imgur.com/TKKgBtj.png',
-        'https://i.imgur.com/CR438Wx.png',
-        'https://i.imgur.com/Smi38tj.png',
-        'https://i.imgur.com/htUP7Q1.png',
-        'https://i.imgur.com/ExfpoOk.png',
-        'https://i.imgur.com/CqvvnIK.png']
-three = ['https://i.imgur.com/QKyXZi7.png',
-         'https://i.imgur.com/d6bsiC9.png',
-         'https://i.imgur.com/cnwIWty.png',
-         'https://i.imgur.com/961sU7P.png',
-         'https://i.imgur.com/CqkIi4l.png',
-         'https://i.imgur.com/t8B0Mlx.png',
-         'https://i.imgur.com/x3kVLsm.png',
-         'https://i.imgur.com/HYRBYOB.png',
-         'https://i.imgur.com/WNNyFCm.png',
-         'https://i.imgur.com/LHT9BQm.png',
-         'https://i.imgur.com/2dXu3aE.png',
-         'https://i.imgur.com/ieStt4W.png',
-         'https://i.imgur.com/nhoKNcn.png',
-         'https://i.imgur.com/6PEYPk5.png',
-         'https://i.imgur.com/M623tDa.png',
-         'https://i.imgur.com/SlVTvX8.png',
-         'https://i.imgur.com/gXq5zFz.png',
-         'https://i.imgur.com/r83HA8k.png',
-         'https://i.imgur.com/V65h2rm.png',
-         'https://i.imgur.com/btAvKKM.png',
-         'https://i.imgur.com/FvFLzHx.png',
-         'https://i.imgur.com/kQpBwFJ.png',
-         'https://i.imgur.com/CJcRa2w.png',
-         'https://i.imgur.com/I6BCrmt.png',
-         'https://i.imgur.com/PxJOJVw.png',
-         'https://i.imgur.com/YCEWu2Y.png',
-         'https://i.imgur.com/plXLsGn.png',
-         'https://i.imgur.com/7GFFv0y.png']
+def get_offset_between_cells(from_cell: str, to_cell: str) -> tuple[int, int]:
+    """
+    두 셀 주소 간의 열/행 차이를 계산하여 (right, down) 튜플로 반환
+    ex) C64 → AD64 → (right=27, down=0)
+    """
+    from_col_letter, from_row = coordinate_from_string(from_cell)
+    to_col_letter, to_row = coordinate_from_string(to_cell)
 
-def generate_gacha_results():
-    """가챠 결과 10개 생성"""
-    results = []
-    for _ in range(10):
-        rand = random.random()
-        if rand < 0.03:
-            results.append(random.choice(five))  # 3% 확률
-        elif rand < 0.13:
-            results.append(random.choice(four))  # 10% 확률
-        elif rand < 0.53:
-            results.append(random.choice(three))  # 40% 확률
+    from_col_index = column_index_from_string(from_col_letter)  # C → 3
+    to_col_index = column_index_from_string(to_col_letter)      # AD → 30
+
+    right = to_col_index - from_col_index
+    down = to_row - from_row
+
+    return right, down
+
+def roll_dice_expression(expr: str):
+    """
+    주사위 표현식(예: '2d6+1')을 계산해서 (굴림 결과, 최댓값) 반환
+    """
+    pattern = r"(\d*)d(\d+)([+-]\d+)?"
+    match = re.fullmatch(pattern, expr.strip())
+
+    if not match:
+        raise ValueError(f"잘못된 표현식입니다: {expr}")
+
+    num_dice = int(match.group(1)) if match.group(1) else 1  # 'd6' → 1d6 처리
+    sides = int(match.group(2))
+    modifier = int(match.group(3)) if match.group(3) else 0
+
+    rolls = [random.randint(1, sides) for _ in range(num_dice)]
+    total = sum(rolls) + modifier
+    max_possible = num_dice * sides + modifier
+
+    return total, max_possible, rolls 
+
+
+## CoC 구현
+
+def CoC_dice(bonus: int = 0):
+    original_roll = random.randint(1, 100)
+    ones = original_roll % 10
+    tens = original_roll // 10
+
+    # 0~9로 처리 (10의 자리만)
+    tens_candidates = [tens]
+
+    for _ in range(abs(bonus)):
+        roll = random.randint(0, 9)
+        tens_candidates.append(roll)
+
+    if bonus > 0:
+        final_tens = max(tens_candidates)
+    elif bonus < 0:
+        final_tens = min(tens_candidates)
+    else:
+        final_tens = tens
+
+    # 최종 결과
+    result = final_tens * 10 + ones
+    # 100 처리 (0 + 0 = 0은 실제로 100이니까)
+    return 100 if result == 0 else result
+
+def CoC_insane_now():
+    number = random.randint(1, 10)
+    result = f"🎲 1d10 = {number} | "
+    if number == 1:
+        result += "광기내용1"
+    elif number == 2:
+        result += "광기내용2"
+    elif number == 3:
+        result += "광기내용3"
+    elif number == 4:
+        result += "광기내용4"
+    elif number == 5:
+        result += "광기내용5"
+    elif number == 6:
+        result += "광기내용6"
+    elif number == 7:
+        result += "광기내용7"
+    elif number == 8:
+        result += "광기내용8"
+    elif number == 9:
+        result += "광기내용9"
+    elif number == 10:
+        result += "광기내용10"
+    return result
+
+def CoC_insane_summary():
+    number = random.randint(1, 10)
+    result = f"🎲 1d10 = {number} | "
+    if number == 1:
+        result += "광기내용1"
+    elif number == 2:
+        result += "광기내용2"
+    elif number == 3:
+        result += "광기내용3"
+    elif number == 4:
+        result += "광기내용4"
+    elif number == 5:
+        result += "광기내용5"
+    elif number == 6:
+        result += "광기내용6"
+    elif number == 7:
+        result += "광기내용7"
+    elif number == 8:
+        result += "광기내용8"
+    elif number == 9:
+        result += "광기내용9"
+    elif number == 10:
+        result += "광기내용10"
+    return result
+
+def CoC_damage(id, skill, modifier, tag):
+    script = ""
+    path = f'/CoC/{id}.xlsx'
+
+    wb = load_workbook(path)
+    ws = wb.active  # 또는 wb["시트이름"]
+
+    cell = find_cell_by_value(ws, skill) # 무기 찾기
+
+    r1, d1 = get_offset_between_cells('C62', 'Z62')
+    damage = get_shifted_cell_value(ws, cell, right=r1, down=d1) #피해 찾기
+    r2, d2 = get_offset_between_cells('C62', 'S62')
+    s = get_shifted_cell_value(ws, cell, right=r2, down=d2) # 판정 기능 찾기
+    r3, d3 = get_offset_between_cells('C62', 'AD62')
+    db = get_shifted_cell_value(ws, cell, right=r3, down=d3) # db 여부 찾기
+    if db == 'db':
+        bonus = ws['R29'].value
+    else:
+        bonus = False
+    r4, d4 = get_offset_between_cells('C62', 'AV62')
+    fail = get_shifted_cell_value(ws, cell, right=r4, down=d4) # 고장 가능성 찾기
+    if isinstance(fail, (int, float)):
+        broken = fail
+    else:
+        if isinstance(fail, str):
+            try:
+                int(fail)
+                broken = fail
+            except ValueError:
+                broken = None
         else:
-            results.append(random.choice(gacha))  # 나머지 확률
-    return results
+            broken = None
+    # 판정
+    s_c = find_cell_by_value(ws, s) # 기능 찾기
+    r1, d1 = get_offset_between_cells('D40', 'K40')
+    percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
+    r2, d2 = get_offset_between_cells('D40', 'M40')
+    great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
+    r3, d3 = get_offset_between_cells('D40', 'N40')
+    extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
 
+    result = CoC_dice(modifier)
+
+    success = ""
+    
+    if result <= extreme:
+        success = "극단적 성공"
+    elif result <= great:
+        success = "대단한 성공"
+    elif result <= percent:
+        success = "성공"
+    else:
+        success = "실패"
+    if result == 1:
+        success = "대성공"
+    if result >= 96:
+        if percent < 50:
+            success = "대실패"
+        else:
+            if result == 100:
+                success = "대실패"
+    if broken:
+        if result >= broken:
+            success += "+고장"
+
+    script += f"🎲 1d100 = {result} [{success}]"
+
+    r, max_r, rolls = roll_dice_expression(damage)
+
+    
+    if success == "극단적 성공" or success == "대성공":
+        if tag == '치명타':
+            script += f" | {damage} = {rolls} → {r} + {max_r} 치명타!"
+        else:
+            script += f" | {damage} = {max_r}"
+    elif success == "성공" or success == "대단한 성공":
+        script += f" | {damage} = {rolls} → {r}"
+
+    if bonus:
+        br, bmax_r, brolls = roll_dice_expression(bonus)
+        if success == "극단적 성공" or success == "대성공":
+            script += f" | db {bonus} = {bmax_r}"
+        elif success == "성공" or success == "대단한 성공":
+            script += f" | db {bonus} = {brolls} → {br}"
+
+    return script
+
+
+def CoC_stat(id, skill, modifier):
+    script = ""
+    path = f'/CoC/{id}.xlsx'
+
+    wb = load_workbook(path)
+    ws = wb.active  # 또는 wb["시트이름"]
+
+    cell = find_cell_by_value(ws, skill) # 기능 찾기
+    r1, d1 = get_offset_between_cells('X6', 'Z6')
+    percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+    r2, d2 = get_offset_between_cells('X6', 'AD6')
+    great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
+    r3, d3 = get_offset_between_cells('X6', 'AD8')
+    extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+
+    result = CoC_dice(modifier)
+
+    success = ""
+    
+    if result <= extreme:
+        success = "극단적 성공"
+    elif result <= great:
+        success = "대단한 성공"
+    elif result <= percent:
+        success = "성공"
+    else:
+        success = "실패"
+    if result == 1:
+        success = "대성공"
+    if result >= 96:
+        if percent < 50:
+            success = "대실패"
+        else:
+            if result == 100:
+                success = "대실패"
+
+    script += f"🎲 1d100 = {result} [{success}]"
+    return script
+
+def CoC_skill(id, skill, modifier):
+    script = ""
+    path = f'/CoC/{id}.xlsx'
+
+    wb = load_workbook(path)
+    ws = wb.active  # 또는 wb["시트이름"]
+
+    cell = find_cell_by_value(ws, skill) # 기능 찾기
+    r1, d1 = get_offset_between_cells('D40', 'K40')
+    percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+    r2, d2 = get_offset_between_cells('D40', 'M40')
+    great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
+    r3, d3 = get_offset_between_cells('D40', 'N40')
+    extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+
+    result = CoC_dice(modifier)
+
+    success = ""
+    
+    if result <= extreme:
+        success = "극단적 성공"
+    elif result <= great:
+        success = "대단한 성공"
+    elif result <= percent:
+        success = "성공"
+    else:
+        success = "실패"
+    if result == 1:
+        success = "대성공"
+    if result >= 96:
+        if percent < 50:
+            success = "대실패"
+        else:
+            if result == 100:
+                success = "대실패"
+
+    script += f"🎲 1d100 = {result} [{success}]"
+    return script
+
+def CoC_sanity(sanity, modifier):
+    percent = sanity
+    great = sanity // 2
+    extreme = sanity // 5
+
+    result = CoC_dice(modifier)
+
+    success = ""
+    
+    if result <= extreme:
+        success = "극단적 성공"
+    elif result <= great:
+        success = "대단한 성공"
+    elif result <= percent:
+        success = "성공"
+    else:
+        success = "실패"
+    if result == 1:
+        success = "대성공"
+    if result >= 96:
+        if percent < 50:
+            success = "대실패"
+        else:
+            if result == 100:
+                success = "대실패"
+
+    script += f"🎲 1d100 = {result} [{success}]"
+
+    return script

@@ -1,8 +1,8 @@
 spec:
-  name: ellipsis
+  name: trpg
   services:
   - environment_slug: python
     git:
       branch: main
-      repo_clone_url: https://github.com/orangegamza/ellipsis.git
-    name: ellipsis
+      repo_clone_url: https://github.com/ningnak/trpg.git
+    name: trpg
