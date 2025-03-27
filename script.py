@@ -169,6 +169,7 @@ def CoC_damage(id, skill, modifier, tag):
     damage = get_shifted_cell_value(ws, cell, right=r1, down=d1) #피해 찾기
     r2, d2 = get_offset_between_cells('C62', 'S62')
     s = get_shifted_cell_value(ws, cell, right=r2, down=d2) # 판정 기능 찾기
+    print(s)
     r3, d3 = get_offset_between_cells('C62', 'AD62')
     db = get_shifted_cell_value(ws, cell, right=r3, down=d3) # db 여부 찾기
     if db == 'db':
@@ -190,12 +191,13 @@ def CoC_damage(id, skill, modifier, tag):
             broken = None
     # 판정
     s_c = find_cell_by_value(ws, s) # 기능 찾기
-    r1, d1 = get_offset_between_cells('X6', 'Z6')
-    percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
-    r2, d2 = get_offset_between_cells('X6', 'AD6')
-    great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
-    r3, d3 = get_offset_between_cells('X6', 'AD8')
-    extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
+    print(s_c)
+    r11, d11 = get_offset_between_cells('D40', 'K40')
+    percent = get_shifted_cell_value(ws, s_c, right=r11, down=d11)
+    r22, d22 = get_offset_between_cells('D40', 'M40')
+    great = get_shifted_cell_value(ws, s_c, right=r22, down=d22)
+    r33, d33 = get_offset_between_cells('D40', 'N40')
+    extreme = get_shifted_cell_value(ws, s_c, right=r33, down=d33)
 
     result = CoC_dice(modifier)
 
