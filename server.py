@@ -60,7 +60,7 @@ class dgListener(StreamListener):
                         answers = script.CoC_insane_now()
                     elif '[요약]' in notification['status']['content']:
                         answers = script.CoC_insane_summary()
-                if '[피해]' in notification['status']['content']:
+                elif '[피해]' in notification['status']['content']:
                     matches = re.findall(r"\[\s*([^\[\]]+?)\s*\]", notification['status']['content'])
                     if len(matches) >= 2:
                         skill_raw = matches[2]  # 두 번째 태그 (보정 포함 가능)
