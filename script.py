@@ -158,7 +158,7 @@ def CoC_insane_summary():
 
 def CoC_damage(id, skill, modifier, tag):
     script = ""
-    path = f'/CoC/{id}.xlsx'
+    path = f'CoC/{id}.xlsx'
 
     wb = load_workbook(path)
     ws = wb.active  # 또는 wb["시트이름"]
@@ -246,7 +246,7 @@ def CoC_damage(id, skill, modifier, tag):
 
 def CoC_stat(id, skill, modifier):
     script = ""
-    path = f'/CoC/{id}.xlsx'
+    path = f'CoC/{id}.xlsx'
 
     wb = load_workbook(path)
     ws = wb.active  # 또는 wb["시트이름"]
@@ -285,7 +285,7 @@ def CoC_stat(id, skill, modifier):
 
 def CoC_skill(id, skill, modifier):
     script = ""
-    path = f'/CoC/{id}.xlsx'
+    path = f'CoC/{id}.xlsx'
 
     wb = load_workbook(path)
     ws = wb.active  # 또는 wb["시트이름"]

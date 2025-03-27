@@ -61,29 +61,34 @@ class dgListener(StreamListener):
                     elif '[요약]' in notification['status']['content']:
                         answers = script.CoC_insane_summary()
                 if '[피해]' in notification['status']['content']:
-                    pattern = r"""
-                        \[\s*[^]]*?\s*\]             # 첫 번째 태그 무시 ([피해] 등)
-                        \[\s*([^\[\]+\-0-9\s]+)      # 기술명 (예: 단검)
-                        \s*([+-]\s*\d+)?\s*\]        # 보정값 (예: -1, +2), 없을 수도 있음
-                        (?:\s*\[\s*([^\[\]]+)\s*\])? # 속성 (예: 치명타), 없을 수도 있음
-                    """
-                    match = re.search(pattern, notification['status']['content'], re.VERBOSE)
-                    if match:
-                        skill = match.group(1)
-                        modifier = match.group(2).replace(" ", "") if match.group(2) else "0"
-                        tag = match.group(3) or None
+                    matches = re.findall(r"\[\s*([^\[\]]+?)\s*\]", notification['status']['content'])
+                    if len(matches) >= 2:
+                        skill_raw = matches[1]  # 두 번째 태그 (보정 포함 가능)
+                        
+                        # skill과 modifier 분리
+                        skill_match = re.match(r"([^\+\-\d\s]+)\s*([+-]\s*\d+)?", skill_raw)
+                        if skill_match:
+                            skill = skill_match.group(1)
+                            modifier = skill_match.group(2).replace(" ", "") if skill_match.group(2) else "0"
+                        else:
+                            skill = skill_raw.strip()
+                            modifier = "0"
+
+                        # 속성 태그 (있을 경우)
+                        tag = matches[2].strip() if len(matches) >= 3 else None
+
+                        # 결과 넘기기
                         answers = script.CoC_damage(user, skill, modifier, tag)
                     else:
                         print("❗ [피해]를 이해하지 못했어.")
                     pass
                 else:
-                    match = re.search(r"\[\s*([^\[\]+\-\s]+)\s*([+-])\s*(\d+)\s*\]|\[\s*([^\[\]+\-\s]+)\s*\]", notification['status']['content'])
-                    if match:
-                        skill = match.group(1) or match.group(4)
-                        if match.group(2) and match.group(3):
-                            modifier = f"{match.group(2)}{match.group(3)}"
-                        else:
-                            modifier = "0"
+                    tags = re.findall(r"\[\s*([^\[\]+\-\s]+)\s*(?:([+-])\s*(\d+))?\s*\]", notification['status']['content'])
+                    if len(tags) >= 2:
+                        skill = tags[1][0]  # 두 번째 태그의 기술명
+                        modifier = f"{tags[1][1]}{tags[1][2]}" if tags[1][1] and tags[1][2] else "0"
+                        print("skill:", skill)
+                        print("modifier:", modifier)
                         stat = ['근력', '건강', '크기', '민첩', '외모', '지능', '정신', '교육']
                         if skill in stat:
                             answers = script.CoC_stat(user, skill, int(modifier))
