@@ -106,13 +106,13 @@ class dgListener(StreamListener):
                     else:
                         print("❗ [기능]을 이해하지 못했어.")  
             elif "[choice" in notification['status']['content']:
-                match = re.search(r"\[choice\((.*?)\)\]", text)
+                match = re.search(r"\[choice\((.*?)\)\]", notification['status']['content'])
                 if match:
                     options = match.group(1).split('/')
                     result = random.choice([opt.strip() for opt in options])
                     answers = f"🔀 {result}"
             else:
-                match = re.search(r"\[([^\[\]]+)\]", text)
+                match = re.search(r"\[([^\[\]]+)\]", notification['status']['content'])
                 if match:
                     dice_expr = match.group(1)
                     r, max_r, rolls = script.roll_dice_expression(dice_expr)
