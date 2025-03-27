@@ -79,7 +79,7 @@ class dgListener(StreamListener):
                 else:
                     match = re.search(r"\[\s*([^\[\]+\-\s]+)\s*([+-])\s*(\d+)\s*\]|\[\s*([^\[\]+\-\s]+)\s*\]", notification['status']['content'])
                     if match:
-                        skill = match.group(1) or match.group(3)
+                        skill = match.group(1) or match.group(4)
                         if match.group(2) and match.group(3):
                             modifier = f"{match.group(2)}{match.group(3)}"
                         else:
@@ -102,7 +102,7 @@ class dgListener(StreamListener):
                                         sanity = int(match.group())
                             answers = script.CoC_sanity(sanity, int(modifier))
                         else:
-                            answers = script.CoC_skill(id, skill, int(modifier))
+                            answers = script.CoC_skill(user, skill, int(modifier))
                     else:
                         print("❗ [기능]을 이해하지 못했어.")  
             elif "[choice" in notification['status']['content']:
