@@ -63,7 +63,7 @@ class dgListener(StreamListener):
                 if '[피해]' in notification['status']['content']:
                     matches = re.findall(r"\[\s*([^\[\]]+?)\s*\]", notification['status']['content'])
                     if len(matches) >= 2:
-                        skill_raw = matches[1]  # 두 번째 태그 (보정 포함 가능)
+                        skill_raw = matches[2]  # 두 번째 태그 (보정 포함 가능)
                         
                         # skill과 modifier 분리
                         skill_match = re.match(r"([^\+\-\d\s]+)\s*([+-]\s*\d+)?", skill_raw)
@@ -75,7 +75,7 @@ class dgListener(StreamListener):
                             modifier = "0"
 
                         # 속성 태그 (있을 경우)
-                        tag = matches[2].strip() if len(matches) >= 3 else None
+                        tag = matches[3].strip() if len(matches) >= 4 else None
 
                         # 결과 넘기기
                         answers = script.CoC_damage(user, skill, int(modifier), tag)
