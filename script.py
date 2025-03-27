@@ -160,7 +160,7 @@ def CoC_damage(id, skill, modifier, tag):
     script = ""
     path = f'CoC/{id}.xlsx'
 
-    wb = load_workbook(path)
+    wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 무기 찾기
@@ -248,7 +248,7 @@ def CoC_stat(id, skill, modifier):
     script = ""
     path = f'CoC/{id}.xlsx'
 
-    wb = load_workbook(path)
+    wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 기능 찾기
@@ -287,7 +287,7 @@ def CoC_skill(id, skill, modifier):
     script = ""
     path = f'CoC/{id}.xlsx'
 
-    wb = load_workbook(path)
+    wb = load_workbook(path, read_only=True, data_only=True)
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 기능 찾기
@@ -330,6 +330,7 @@ def CoC_sanity(sanity, modifier):
     result = CoC_dice(modifier)
 
     success = ""
+    script = ""
     
     if result <= extreme:
         success = "극단적 성공"
