@@ -62,19 +62,20 @@ class dgListener(StreamListener):
                         answers = script.CoC_insane_summary()
                 elif '[피해]' in notification['status']['content']:
                     matches = re.findall(r"\[\s*([^\[\]]+?)\s*\]", notification['status']['content'])
-                    if len(matches) >= 2:
-                        skill_raw = matches[2]  # 두 번째 태그 (보정 포함 가능)
-                        
-                        # skill과 modifier 분리
-                        skill_match = re.match(r"([^\+\-\d\s]+)\s*([+-]\s*\d+)?", skill_raw)
+
+                    if len(matches) >= 3:
+                        skill_raw = matches[2]
+
+                        # 보정 포함 기술명 추출 (숫자 포함!)
+                        skill_match = re.match(r"([^\+\-\s]+)\s*([+-]\s*\d+)?", skill_raw)
                         if skill_match:
-                            skill = skill_match.group(1)
+                            skill = skill_match.group(1)  # → '글록17'
                             modifier = skill_match.group(2).replace(" ", "") if skill_match.group(2) else "0"
                         else:
                             skill = skill_raw.strip()
                             modifier = "0"
 
-                        # 속성 태그 (있을 경우)
+                        # 속성 태그 (네 번째 태그가 있다면)
                         tag = matches[3].strip() if len(matches) >= 4 else None
 
                         # 결과 넘기기
