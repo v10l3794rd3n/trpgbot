@@ -78,7 +78,7 @@ class dgListener(StreamListener):
                         tag = matches[2].strip() if len(matches) >= 3 else None
 
                         # 결과 넘기기
-                        answers = script.CoC_damage(user, skill, modifier, tag)
+                        answers = script.CoC_damage(user, skill, int(modifier), tag)
                     else:
                         print("❗ [피해]를 이해하지 못했어.")
                     pass
