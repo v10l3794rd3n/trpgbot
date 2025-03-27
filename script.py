@@ -190,11 +190,11 @@ def CoC_damage(id, skill, modifier, tag):
             broken = None
     # 판정
     s_c = find_cell_by_value(ws, s) # 기능 찾기
-    r1, d1 = get_offset_between_cells('D40', 'K40')
+    r1, d1 = get_offset_between_cells('X6', 'Z6')
     percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
-    r2, d2 = get_offset_between_cells('D40', 'M40')
+    r2, d2 = get_offset_between_cells('X6', 'AD6')
     great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
-    r3, d3 = get_offset_between_cells('D40', 'N40')
+    r3, d3 = get_offset_between_cells('X6', 'AD8')
     extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
 
     result = CoC_dice(modifier)
