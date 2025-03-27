@@ -164,9 +164,12 @@ def CoC_damage(id, skill, modifier, tag):
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 무기 찾기
+    print(skill)
+    print(cell)
 
     r1, d1 = get_offset_between_cells('C62', 'Z62')
     damage = get_shifted_cell_value(ws, cell, right=r1, down=d1) #피해 찾기
+    print(damage)
     r2, d2 = get_offset_between_cells('C62', 'S62')
     s = get_shifted_cell_value(ws, cell, right=r2, down=d2) # 판정 기능 찾기
     print(s)
