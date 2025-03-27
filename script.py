@@ -94,9 +94,9 @@ def CoC_dice(bonus: int = 0):
         roll = random.randint(0, 9)
         tens_candidates.append(roll)
 
-    if bonus > 0:
+    if bonus < 0:
         final_tens = max(tens_candidates)
-    elif bonus < 0:
+    elif bonus > 0:
         final_tens = min(tens_candidates)
     else:
         final_tens = tens
