@@ -239,7 +239,7 @@ def CoC_damage(id, skill, modifier, tag):
     elif success == "성공" or success == "대단한 성공":
         script += f" | {damage} = {rolls} → {r}"
 
-    if bonus:
+    if bonus and bonus != "0":
         br, bmax_r, brolls = roll_dice_expression(bonus)
         if success == "극단적 성공" or success == "대성공":
             script += f" | db {bonus} = {bmax_r}"
