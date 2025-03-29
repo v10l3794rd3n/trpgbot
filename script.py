@@ -44,10 +44,6 @@ def get_shifted_cell_value(ws, base_cell: str, right=0, down=0):
 
 
 def get_offset_between_cells(from_cell: str, to_cell: str) -> tuple[int, int]:
-    """
-    두 셀 주소 간의 열/행 차이를 계산하여 (right, down) 튜플로 반환
-    ex) C64 → AD64 → (right=27, down=0)
-    """
     from_col_letter, from_row = coordinate_from_string(from_cell)
     to_col_letter, to_row = coordinate_from_string(to_cell)
 
@@ -60,9 +56,6 @@ def get_offset_between_cells(from_cell: str, to_cell: str) -> tuple[int, int]:
     return right, down
 
 def roll_dice_expression(expr: str):
-    """
-    주사위 표현식(예: '2d6+1')을 계산해서 (굴림 결과, 최댓값) 반환
-    """
     pattern = r"(\d*)d(\d+)([+-]\d+)?"
     match = re.fullmatch(pattern, expr.strip())
 
@@ -87,7 +80,6 @@ def CoC_dice(bonus: int = 0):
     ones = original_roll % 10
     tens = original_roll // 10
 
-    # 0~9로 처리 (10의 자리만)
     tens_candidates = [tens]
 
     for _ in range(abs(bonus)):
@@ -103,7 +95,6 @@ def CoC_dice(bonus: int = 0):
 
     # 최종 결과
     result = final_tens * 10 + ones
-    # 100 처리 (0 + 0 = 0은 실제로 100이니까)
     return 100 if result == 0 else result
 
 def CoC_insane_now():

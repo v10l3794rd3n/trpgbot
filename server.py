@@ -15,13 +15,14 @@ from mastodon.streaming import StreamListener
 
 # Create an instance of the Mastodon class
 mastodon = Mastodon(
-    access_token='Smv3musvnx_dpoehgY1K9xI76LqDKFU5ojL1L7nd1rA',
-    api_base_url='https://ododok.life'
+    access_token='RqbtBP8gWi4dHA3A_VRaXJj9JDKuclipanDGIDI1Uf4',
+    api_base_url='https://violetgarden.pe.kr'
 )
 
 
+# 예비용 함수 (실제로 쓰이지 않음)
+
 def timeout_function(func, timeout=30, *args, **kwargs):
-    """ 특정 함수가 일정 시간 내 실행되지 않으면 강제 종료하는 함수 """
     result = [None]
     
     def wrapper():
@@ -65,8 +66,6 @@ class dgListener(StreamListener):
 
                     if len(matches) >= 3:
                         skill_raw = matches[2]
-
-                        # 보정 포함 기술명 추출 (숫자 포함!)
                         skill_match = re.match(r"([^\+\-\s]+)\s*([+-]\s*\d+)?", skill_raw)
                         if skill_match:
                             skill = skill_match.group(1)  # → '글록17'
@@ -75,10 +74,7 @@ class dgListener(StreamListener):
                             skill = skill_raw.strip()
                             modifier = "0"
 
-                        # 속성 태그 (네 번째 태그가 있다면)
                         tag = matches[3].strip() if len(matches) >= 4 else None
-
-                        # 결과 넘기기
                         answers = script.CoC_damage(user, skill, int(modifier), tag)
                     else:
                         print("❗ [피해]를 이해하지 못했어.")
