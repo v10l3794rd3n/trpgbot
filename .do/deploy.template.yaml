@@ -1,8 +1,8 @@
 spec:
-  name: trpg
+  name: trpgbot
   services:
   - environment_slug: python
     git:
       branch: main
-      repo_clone_url: https://github.com/ningnak/trpg.git
-    name: trpg
+      repo_clone_url: https://github.com/v10l3794rd3n/trpgbot.git
+    name: trpgbot

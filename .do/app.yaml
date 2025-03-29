@@ -1,8 +1,8 @@
-name: trpg
+name: trpgbot
 services:
 - environment_slug: python
   github:
     branch: main
     deploy_on_push: true
-    repo: ningnak/trpg
-  name: trpg
+    repo: v10l3794rd3n/trpgbot
+  name: trpgbot
