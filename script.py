@@ -194,13 +194,27 @@ def CoC_damage(id, skill, modifier, tag):
             broken = None
     # 판정
     s_c = find_cell_by_value(ws, s) # 기능 찾기
-    print(s_c)
-    r11, d11 = get_offset_between_cells('D40', 'K40')
-    percent = get_shifted_cell_value(ws, s_c, right=r11, down=d11)
-    r22, d22 = get_offset_between_cells('D40', 'M40')
-    great = get_shifted_cell_value(ws, s_c, right=r22, down=d22)
-    r33, d33 = get_offset_between_cells('D40', 'N40')
-    extreme = get_shifted_cell_value(ws, s_c, right=r33, down=d33)
+
+    #####################################
+    ### 특수 기능 처리 if 문
+    #####################################
+
+    col_letter, row = coordinate_from_string(s_c.coordinate)
+
+    if col_letter == "AJ":
+        r1, d1 = get_offset_between_cells('AJ45', 'AS45')
+        percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
+        r2, d2 = get_offset_between_cells('AJ45', 'AU45')
+        great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
+        r3, d3 = get_offset_between_cells('AJ45', 'AY45')
+        extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
+    else:
+        r1, d1 = get_offset_between_cells('D40', 'K40')
+        percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
+        r2, d2 = get_offset_between_cells('D40', 'M40')
+        great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
+        r3, d3 = get_offset_between_cells('D40', 'N40')
+        extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
 
     result, message = CoC_dice(modifier)
 
@@ -301,7 +315,9 @@ def CoC_skill(id, skill, modifier):
     ### 특수 기능 처리 if 문
     #####################################
 
-    if get_shifted_cell_value(ws, cell, right=-1, down=0) not in ["", "FALSE", "TRUE"]:
+    col_letter, row = coordinate_from_string(cell.coordinate)
+
+    if col_letter == "AJ":
         r1, d1 = get_offset_between_cells('AJ45', 'AS45')
         percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
         r2, d2 = get_offset_between_cells('AJ45', 'AU45')
