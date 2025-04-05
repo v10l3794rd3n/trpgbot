@@ -73,7 +73,7 @@ def roll_dice_expression(expr: str):
     return total, max_possible, rolls 
 
 
-## CoC 구현
+###################################################################### CoC 구현
 
 def CoC_dice(bonus: int = 0):
     original_roll = random.randint(1, 100)
@@ -94,8 +94,17 @@ def CoC_dice(bonus: int = 0):
         final_tens = tens
 
     # 최종 결과
-    result = final_tens * 10 + ones
-    return 100 if result == 0 else result
+    result = [t * 10 + ones for t in tens_candidates]
+    for r in result:
+        r = 100 if r == 0 else r
+    if final_tens * 10 + ones == 0:
+        final = 100
+    else:
+        final = final_tens * 10 + ones
+
+    message = f"{result} → {final}"
+    return final, message
+        
 
 def CoC_insane_now():
     number = random.randint(1, 10)
@@ -193,14 +202,14 @@ def CoC_damage(id, skill, modifier, tag):
     r33, d33 = get_offset_between_cells('D40', 'N40')
     extreme = get_shifted_cell_value(ws, s_c, right=r33, down=d33)
 
-    result = CoC_dice(modifier)
+    result, message = CoC_dice(modifier)
 
     success = ""
     
     if result <= extreme:
         success = "극단적 성공"
     elif result <= great:
-        success = "대단한 성공"
+        success = "어려운 성공"
     elif result <= percent:
         success = "성공"
     else:
@@ -217,7 +226,7 @@ def CoC_damage(id, skill, modifier, tag):
         if result >= broken:
             success += "+고장"
 
-    script += f"🎲 1d100 = {result} [{success}]"
+    script += f"{percent} || 🎲 1d100 = {message} [{success}]"
 
     r, max_r, rolls = roll_dice_expression(damage)
 
@@ -255,14 +264,14 @@ def CoC_stat(id, skill, modifier):
     r3, d3 = get_offset_between_cells('X6', 'AD8')
     extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
 
-    result = CoC_dice(modifier)
+    result, message = CoC_dice(modifier)
 
     success = ""
     
     if result <= extreme:
         success = "극단적 성공"
     elif result <= great:
-        success = "대단한 성공"
+        success = "어려운 성공"
     elif result <= percent:
         success = "성공"
     else:
@@ -276,7 +285,7 @@ def CoC_stat(id, skill, modifier):
             if result == 100:
                 success = "대실패"
 
-    script += f"🎲 1d100 = {result} [{success}]"
+    script += f"{percent} || 🎲 1d100 = {message} [{success}]"
     return script
 
 def CoC_skill(id, skill, modifier):
@@ -287,21 +296,34 @@ def CoC_skill(id, skill, modifier):
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 기능 찾기
-    r1, d1 = get_offset_between_cells('D40', 'K40')
-    percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
-    r2, d2 = get_offset_between_cells('D40', 'M40')
-    great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
-    r3, d3 = get_offset_between_cells('D40', 'N40')
-    extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
 
-    result = CoC_dice(modifier)
+    #####################################
+    ### 특수 기능 처리 if 문
+    #####################################
+
+    if get_shifted_cell_value(ws, cell, right=-1, down=0) not in ["", "FALSE", "TRUE"]:
+        r1, d1 = get_offset_between_cells('AJ45', 'AS45')
+        percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+        r2, d2 = get_offset_between_cells('AJ45', 'AU45')
+        great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
+        r3, d3 = get_offset_between_cells('AJ45', 'AY45')
+        extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+    else:
+        r1, d1 = get_offset_between_cells('D40', 'K40')
+        percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+        r2, d2 = get_offset_between_cells('D40', 'M40')
+        great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
+        r3, d3 = get_offset_between_cells('D40', 'N40')
+        extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+
+    result, message = CoC_dice(modifier)
 
     success = ""
     
     if result <= extreme:
         success = "극단적 성공"
     elif result <= great:
-        success = "대단한 성공"
+        success = "어려운 성공"
     elif result <= percent:
         success = "성공"
     else:
@@ -315,7 +337,7 @@ def CoC_skill(id, skill, modifier):
             if result == 100:
                 success = "대실패"
 
-    script += f"🎲 1d100 = {result} [{success}]"
+    script += f"{percent} || 🎲 1d100 = {message} [{success}]"
     return script
 
 def CoC_sanity(sanity, modifier):
@@ -323,7 +345,7 @@ def CoC_sanity(sanity, modifier):
     great = sanity // 2
     extreme = sanity // 5
 
-    result = CoC_dice(modifier)
+    result, message = CoC_dice(modifier)
 
     success = ""
     script = ""
@@ -331,7 +353,7 @@ def CoC_sanity(sanity, modifier):
     if result <= extreme:
         success = "극단적 성공"
     elif result <= great:
-        success = "대단한 성공"
+        success = "어려운 성공"
     elif result <= percent:
         success = "성공"
     else:
@@ -345,6 +367,129 @@ def CoC_sanity(sanity, modifier):
             if result == 100:
                 success = "대실패"
 
-    script += f"🎲 1d100 = {result} [{success}]"
+    script += f"{percent} || 🎲 1d100 = {message} [{success}]"
 
+    return script
+
+
+################################################## inSANe
+
+
+
+def inSANe_roll(point, modifier = None):
+
+    total, max_possible, rolls = roll_dice_expression("2d6")
+
+    if total == 12:
+        success = "크리티컬"
+    elif total == 2:
+        success = "펌블"
+    elif total + int(modifier) >= int(point):
+        success = "성공"
+    else:
+        success = "실패"
+
+    return success, total + int(modifier), rolls
+
+
+def inSANe_default(id, skill, modifier, ability, fears):
+    script = ""
+    path = f'inSANe/{id}.xlsx'
+
+    wb = load_workbook(path, read_only=True, data_only=True)
+    ws = wb.active
+    if skill == None:
+        a = find_cell_by_value(ws, ability)
+        r1, d1 = get_offset_between_cells('L23', 'U23')
+        desc = get_shifted_cell_value(ws, a, right=r1, down=d1)
+        script += f" ✨ {ability} || {desc}"
+        return script
+
+    if skill == '회피':
+        plot = int(ability) + 4
+        success, total, rolls = inSANe_roll(plot, modifier)
+        script += f"{plot} || 🎲 2d6 = {rolls} {"" if modifier == "0" or modifier == 0 else modifier} → {total} [{success}]"
+        return script
+
+    cell = find_cell_by_value(ws, skill) # 기능 찾기
+    r1, d1 = get_offset_between_cells('S5', 'T5')
+    point = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+
+    if ability == "공포판정":
+        if skill in fears:
+            point = str(int(point) + 2)
+        success, total, rolls = inSANe_roll(point, modifier)
+        script += f"{point} || 🎲 2d6 = {rolls} {"" if modifier == "0" or modifier == 0 else modifier} → {total} [{success}]"
+        return script
+
+    success, total, rolls = inSANe_roll(point, modifier)
+    script += f"{point} || 🎲 2d6 = {rolls} {"" if modifier == "0" or modifier == 0 else modifier} → {total} [{success}]"
+    if ability:
+        a = find_cell_by_value(ws, ability)
+        r1, d1 = get_offset_between_cells('L23', 'U23')
+        desc = get_shifted_cell_value(ws, a, right=r1, down=d1)
+        script += f" ✨ {ability} || {desc}"
+    return script
+
+def inSANe_insert_card():
+    wb = load_workbook("inSANe/insane.xlsx", data_only=True)
+    ws = wb.active
+
+    count = 0
+    for cell in ws['A'][1:]:
+        if cell.value is not None and str(cell.value).strip() != "":
+            count += 1
+    
+    return count
+
+def inSANe_card(count):
+    script = ""
+    path = f'inSANe/insane.xlsx'
+
+    wb = load_workbook(path, data_only=True)
+    ws = wb.active
+
+    a_values = [cell.value for cell in ws['A'][1:] if cell.value is not None]
+    total = len(a_values)
+    card = a_values[total - count]
+    b_values = [cell.value for cell in ws['B'][1:] if cell.value is not None]
+    desc = b_values[total - count]
+
+    script += f"🃏 {card} || {desc}"
+    return script
+
+def insane_category(id, category):
+    script = ""
+    path = f'inSANe/{id}.xlsx'
+
+    wb = load_workbook(path, data_only=True, read_only=True)
+    ws = wb.active
+
+    total, max_possible, rolls = roll_dice_expression("2d6")
+
+    category_cols = {
+        '폭력': 15,   # O
+        '정서': 19,   # S
+        '지각': 23,   # W
+        '기술': 27,   # AA
+        '지식': 31,   # AE
+        '괴이': 35    # AI
+    }
+
+    if category not in category_cols:
+        return "잘못된 분야입니다."
+
+    base_row = 2
+    base_col = category_cols[category]
+    target_row = base_row + (total - 1)
+
+    skill = ws.cell(row=target_row, column=base_col).value
+
+    script += f"♾️ {category} || {rolls} → {total} [{skill}]"
+    return script
+
+def m_d66():
+    first = random.randint(1, 6)
+    second = random.randint(1, 6)
+    script = f"🎲 d66 → ({first}, {second})"
     return script

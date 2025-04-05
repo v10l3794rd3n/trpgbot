@@ -5,12 +5,12 @@ import script
 import re
 import time
 import threading
-import urllib.parse
 import random
 
 from http import HTTPStatus
 from mastodon import Mastodon
 from mastodon.streaming import StreamListener
+from collections import namedtuple
 
 
 # Create an instance of the Mastodon class
@@ -103,10 +103,90 @@ class dgListener(StreamListener):
                                     if match:
                                         sanity = int(match.group())
                             answers = script.CoC_sanity(sanity, int(modifier))
+                        elif skill == '행운':
+                            # 1. 계정 정보 가져오기
+                            account = mastodon.account(notification['account']['id'])
+                            # 2. 부가 필드 중 "LUCK" 찾기
+                            for field in account.get('fields', []):
+                                if field.get('name', '').strip().upper() == 'LUCK':
+                                    raw_value = field.get('value', '')
+                                    # HTML 태그 제거
+                                    text = re.sub(r'<.*?>', '', raw_value)
+                                    # 숫자 추출
+                                    match = re.search(r'\d+', text)
+                                    if match:
+                                        sanity = int(match.group())
+                            answers = script.CoC_sanity(sanity, int(modifier))
                         else:
                             answers = script.CoC_skill(user, skill, int(modifier))
                     else:
                         print("❗ [기능]을 이해하지 못했어.")  
+            elif '[인세인]' in notification['status']['content']:
+                if '분야' in notification['status']['content']:
+                    match = re.search(r"\[인세인\]\[\s*분야\s*/\s*([^\[\]/]+)\s*\]", notification['status']['content'])
+                    if match:
+                        category = match.group(1)
+                        answers = script.insane_category(user, category)
+                elif '[광기카드등록]' in notification['status']['content']:
+                    AccountField = namedtuple("AccountField", ["name", "value"])
+                    cards = str(script.inSANe_insert_card())
+                    me = mastodon.account_verify_credentials()
+                    fields = me.get('fields', [])
+                    fields_data = []
+                    found = False
+                    for field in fields:
+                        name = getattr(field, 'name', '').strip()
+                        value = getattr(field, 'value', '')
+                        if name.upper() == 'CARD':
+                            value = cards
+                            found = True
+                        fields_data.append(AccountField(name=name, value=value))
+                    if not found and len(fields_data) < 4:
+                        fields_data.append(AccountField(name='CARD', value=cards))
+                    mastodon.account_update_credentials(fields=fields_data)
+                    answers = "✅ 광기카드가 등록되었습니다."
+                elif '[광기카드]' in notification['status']['content']:
+                    AccountField = namedtuple("AccountField", ["name", "value"])
+                    me = mastodon.account_verify_credentials()
+                    fields_data = [{'name': f.name, 'value': f.value} for f in me.get('fields', [])]
+                    insane_index = None
+                    insane_count = None
+                    for i, field in enumerate(fields_data):
+                        if field.get('name', '').strip().upper() == 'CARD':
+                            try:
+                                insane_count = int(str(field.get('value', '')).strip())
+                                insane_index = i
+                            except ValueError:
+                                print("정수 아님")
+                            break
+                    answers = script.inSANe_card(insane_count)
+                    if insane_index is not None and insane_count is not None:
+                        new_count = insane_count - 1
+                        fields_data[insane_index]['value'] = str(new_count)
+                        converted_fields = [AccountField(name=f['name'], value=f['value']) for f in fields_data]
+                        mastodon.account_update_credentials(fields=converted_fields)
+                    visibility = 'direct'
+                else:
+                    account = mastodon.account(notification['account']['id'])
+                    fears = []
+                    for field in account.get('fields', []):
+                        if field.get('name', '').strip().upper() == 'FEAR':
+                            raw_value = field.get('value', '')
+                            text = re.sub(r'<.*?>', '', raw_value)
+                            fears = [f.strip() for f in text.split(',') if f.strip()]
+                            break 
+                    tags = re.findall(r"\[\s*([^\[\]]*)\s*\]", notification['status']['content'])
+                    skill, modifier, ability = None, "0", None
+                    if len(tags) >= 2:
+                        raw_skill = tags[1].strip()
+                        skill_match = re.match(r"([^\+\-\s]+)?\s*([+-]\s*\d+)?", raw_skill)
+                        skill = skill_match.group(1) if skill_match and skill_match.group(1) else None
+                        modifier = skill_match.group(2).replace(" ", "") if skill_match and skill_match.group(2) else "0"
+                    if len(tags) >= 3:
+                        ability = tags[2].strip()
+                    answers = script.inSANe_default(user, skill, modifier, ability, fears)
+                
+############################################## 기타 다이스 #######################################
             elif "[choice" in notification['status']['content']:
                 match = re.search(r"\[choice\((.*?)\)\]", notification['status']['content'])
                 if match:
@@ -117,8 +197,11 @@ class dgListener(StreamListener):
                 match = re.search(r"\[([^\[\]]+)\]", notification['status']['content'])
                 if match:
                     dice_expr = match.group(1)
-                    r, max_r, rolls = script.roll_dice_expression(dice_expr)
-                    answers = f"🎲 {dice_expr} = {rolls} → {r}"
+                    if dice_expr == 'd66':
+                        answers = script.m_d66()
+                    else:
+                        r, max_r, rolls = script.roll_dice_expression(dice_expr)
+                        answers = f"🎲 {dice_expr} = {rolls} → {r}"
             
             mastodon.status_post("@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
