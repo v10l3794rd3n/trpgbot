@@ -199,9 +199,7 @@ def CoC_damage(id, skill, modifier, tag):
     ### 특수 기능 처리 if 문
     #####################################
 
-    col_letter, row = coordinate_from_string(s_c.coordinate)
-
-    if col_letter == "AJ":
+    if "AJ" in s_c:
         r1, d1 = get_offset_between_cells('AJ45', 'AS45')
         percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
         r2, d2 = get_offset_between_cells('AJ45', 'AU45')
@@ -315,9 +313,7 @@ def CoC_skill(id, skill, modifier):
     ### 특수 기능 처리 if 문
     #####################################
 
-    col_letter, row = coordinate_from_string(cell.coordinate)
-
-    if col_letter == "AJ":
+    if "AJ" in cell:
         r1, d1 = get_offset_between_cells('AJ45', 'AS45')
         percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
         r2, d2 = get_offset_between_cells('AJ45', 'AU45')
