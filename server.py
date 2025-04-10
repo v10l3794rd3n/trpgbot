@@ -80,7 +80,7 @@ class dgListener(StreamListener):
                         print("❗ [피해]를 이해하지 못했어.")
                     pass
                 else:
-                    tags = re.findall(r"\[\s*([^\[\]+\-\s]+)\s*(?:([+-])\s*(\d+))?\s*\]", notification['status']['content'])
+                    tags = re.findall(r"\[\s*([^\[\]+\-]+?)\s*(?:([+-])\s*(\d+))?\s*\]", notification['status']['content'])
                     if len(tags) >= 2:
                         skill = tags[1][0]  # 두 번째 태그의 기술명
                         modifier = f"{tags[1][1]}{tags[1][2]}" if tags[1][1] and tags[1][2] else "0"

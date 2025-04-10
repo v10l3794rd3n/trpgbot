@@ -16,10 +16,10 @@ from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 def find_cell_by_value(ws, keyword):
     for row in ws.iter_rows():
         for cell in row:
-            if cell.value == keyword:
-                return cell.coordinate  # 예: 'B2'
+            if str(cell.value).strip() == keyword:
+                return cell
+    return None
 
-    return None  # 찾지 못했을 경우
 
 def shift_cell(cell_ref: str, right=0, down=0) -> str:
     col_letter, row = coordinate_from_string(cell_ref)
@@ -269,12 +269,13 @@ def CoC_stat(id, skill, modifier):
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 기능 찾기
-    r1, d1 = get_offset_between_cells('X6', 'Z6')
-    percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
-    r2, d2 = get_offset_between_cells('X6', 'AD6')
-    great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
-    r3, d3 = get_offset_between_cells('X6', 'AD8')
-    extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+    if skill == "교육" or skill == "정신":
+        percent = get_shifted_cell_value(ws, cell, right=7, down=0)
+    else:
+        r1, d1 = get_offset_between_cells('X6', 'Z6')
+        percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+    extreme = percent // 5
+    great = percent // 2
 
     result, message = CoC_dice(modifier)
 
@@ -316,17 +317,13 @@ def CoC_skill(id, skill, modifier):
     if "AJ" in cell:
         r1, d1 = get_offset_between_cells('AJ45', 'AS45')
         percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
-        r2, d2 = get_offset_between_cells('AJ45', 'AU45')
-        great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
-        r3, d3 = get_offset_between_cells('AJ45', 'AY45')
-        extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+        great = percent // 2
+        extreme = percent // 5
     else:
         r1, d1 = get_offset_between_cells('D40', 'K40')
         percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
-        r2, d2 = get_offset_between_cells('D40', 'M40')
-        great = get_shifted_cell_value(ws, cell, right=r2, down=d2)
-        r3, d3 = get_offset_between_cells('D40', 'N40')
-        extreme = get_shifted_cell_value(ws, cell, right=r3, down=d3)
+        great = percent // 2
+        extreme = percent // 5
 
     result, message = CoC_dice(modifier)
 
