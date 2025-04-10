@@ -16,9 +16,12 @@ from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
 def find_cell_by_value(ws, keyword):
     for row in ws.iter_rows():
         for cell in row:
-            if str(cell.value).strip() == keyword:
-                return cell.coordinate
+            if cell.value is not None:
+                print(f"{cell.coordinate} → '{cell.value}'")
+                if str(cell.value).strip() == keyword:
+                    return cell.coordinate
     return None
+
 
 
 def shift_cell(cell_ref: str, right=0, down=0) -> str:
