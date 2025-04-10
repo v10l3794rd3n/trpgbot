@@ -17,7 +17,6 @@ def find_cell_by_value(ws, keyword):
     for row in ws.iter_rows():
         for cell in row:
             if cell.value is not None:
-                print(f"{cell.coordinate} → '{cell.value}'")
                 if keyword.strip() == str(cell.value).strip():
                     return cell.coordinate
     return None
@@ -202,20 +201,20 @@ def CoC_damage(id, skill, modifier, tag):
     ### 특수 기능 처리 if 문
     #####################################
 
-    if "AJ" in s_c:
+    if "AE" in s_c:
+        percent = get_shifted_cell_value(ws, s_c, right=14, down=0)
+        great = percent // 2
+        extreme = percent // 5
+    elif "AJ" in s_c:
         r1, d1 = get_offset_between_cells('AJ45', 'AS45')
         percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
-        r2, d2 = get_offset_between_cells('AJ45', 'AU45')
-        great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
-        r3, d3 = get_offset_between_cells('AJ45', 'AY45')
-        extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
+        great = percent // 2
+        extreme = percent // 5
     else:
         r1, d1 = get_offset_between_cells('D40', 'K40')
         percent = get_shifted_cell_value(ws, s_c, right=r1, down=d1)
-        r2, d2 = get_offset_between_cells('D40', 'M40')
-        great = get_shifted_cell_value(ws, s_c, right=r2, down=d2)
-        r3, d3 = get_offset_between_cells('D40', 'N40')
-        extreme = get_shifted_cell_value(ws, s_c, right=r3, down=d3)
+        great = percent // 2
+        extreme = percent // 5
 
     result, message = CoC_dice(modifier)
 
@@ -317,7 +316,11 @@ def CoC_skill(id, skill, modifier):
     ### 특수 기능 처리 if 문
     #####################################
 
-    if "AJ" in cell:
+    if "AE" in cell:
+        percent = get_shifted_cell_value(ws, cell, right=14, down=0)
+        great = percent // 2
+        extreme = percent // 5
+    elif "AJ" in cell:
         r1, d1 = get_offset_between_cells('AJ45', 'AS45')
         percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
         great = percent // 2

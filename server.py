@@ -20,8 +20,6 @@ mastodon = Mastodon(
 )
 
 
-# 예비용 함수 (실제로 쓰이지 않음)
-
 def timeout_function(func, timeout=30, *args, **kwargs):
     result = [None]
     
