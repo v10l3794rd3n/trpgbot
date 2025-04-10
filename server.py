@@ -203,7 +203,10 @@ class dgListener(StreamListener):
                         r, max_r, rolls = script.roll_dice_expression(dice_expr)
                         answers = f"🎲 {dice_expr} = {rolls} → {r}"
             
-            mastodon.status_post("@" + notification['account']['username'] + "  " + 
+            # mastodon.status_post("@" + notification['account']['username'] + "  " + 
+            #                 answers, in_reply_to_id = id, 
+            #                 visibility = visibility)
+            timeout_function(mastodon.status_post, 10, "@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
         
@@ -222,6 +225,6 @@ port = int(os.getenv('PORT', 8080))
 print('Listening on port %s' % (port))
 httpd = socketserver.TCPServer(('', port), Handler)
 
-mastodon.stream_user(timeout_function(dgListener(), 30))
+mastodon.stream_user(dgListener())
 
 httpd.serve_forever()
