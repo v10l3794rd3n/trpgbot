@@ -18,6 +18,7 @@ def find_cell_by_value(ws, keyword):
         for cell in row:
             if cell.value is not None:
                 if keyword.strip() == str(cell.value).strip():
+                    print(cell.coordinate)
                     return cell.coordinate
     return None
 
