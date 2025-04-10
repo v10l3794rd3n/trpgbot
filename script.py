@@ -17,7 +17,7 @@ def find_cell_by_value(ws, keyword):
     for row in ws.iter_rows():
         for cell in row:
             if str(cell.value).strip() == keyword:
-                return cell
+                return cell.coordinate
     return None
 
 

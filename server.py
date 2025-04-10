@@ -222,6 +222,6 @@ port = int(os.getenv('PORT', 8080))
 print('Listening on port %s' % (port))
 httpd = socketserver.TCPServer(('', port), Handler)
 
-mastodon.stream_user(dgListener())
+mastodon.stream_user(timeout_function(dgListener(), 30))
 
 httpd.serve_forever()
