@@ -272,11 +272,8 @@ def CoC_stat(id, skill, modifier):
     ws = wb.active  # 또는 wb["시트이름"]
 
     cell = find_cell_by_value(ws, skill) # 기능 찾기
-    print(cell)
-    print(skill)
     if skill == "교육" or skill == "정신":
-        print("if문 들어옴")
-        percent = get_shifted_cell_value(ws, cell, right=1, down=0)
+        percent = get_shifted_cell_value(ws, cell, right=2, down=0)
     else:
         r1, d1 = get_offset_between_cells('X6', 'Z6')
         percent = get_shifted_cell_value(ws, cell, right=r1, down=d1)
