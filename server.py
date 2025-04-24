@@ -20,8 +20,6 @@ mastodon = Mastodon(
 )
 
 
-# 예비용 함수 (실제로 쓰이지 않음)
-
 def timeout_function(func, timeout=30, *args, **kwargs):
     result = [None]
     
@@ -80,7 +78,7 @@ class dgListener(StreamListener):
                         print("❗ [피해]를 이해하지 못했어.")
                     pass
                 else:
-                    tags = re.findall(r"\[\s*([^\[\]+\-\s]+)\s*(?:([+-])\s*(\d+))?\s*\]", notification['status']['content'])
+                    tags = re.findall(r"\[\s*([^\[\]+\-]+?)\s*(?:([+-])\s*(\d+))?\s*\]", notification['status']['content'])
                     if len(tags) >= 2:
                         skill = tags[1][0]  # 두 번째 태그의 기술명
                         modifier = f"{tags[1][1]}{tags[1][2]}" if tags[1][1] and tags[1][2] else "0"
@@ -203,7 +201,10 @@ class dgListener(StreamListener):
                         r, max_r, rolls = script.roll_dice_expression(dice_expr)
                         answers = f"🎲 {dice_expr} = {rolls} → {r}"
             
-            mastodon.status_post("@" + notification['account']['username'] + "  " + 
+            # mastodon.status_post("@" + notification['account']['username'] + "  " + 
+            #                 answers, in_reply_to_id = id, 
+            #                 visibility = visibility)
+            timeout_function(mastodon.status_post, 10, "@" + notification['account']['username'] + "  " + 
                             answers, in_reply_to_id = id, 
                             visibility = visibility)
         
