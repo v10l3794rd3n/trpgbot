@@ -571,10 +571,11 @@ def mglg_table(table):
     
     if ws["A7"].value == "" or ws["A7"].value is None or ws["A7"].value is False:
         total, max_possible, rolls = roll_dice_expression("1d6")
+        result = ws.cell(row = total, column=2).value
     else:
         total, max_possible, rolls = roll_dice_expression("2d6")
-
-    result = ws.cell(row = total, column=2).value
+        result = ws.cell(row = total - 1, column=2).value
+    
 
     script += f"🔀 {table} || {rolls} → {total} [{result}]"
     return script
