@@ -569,7 +569,10 @@ def mglg_table(table):
     wb = load_workbook(path, data_only=True, read_only=True)
     ws = wb[table]
     
-    total, max_possible, rolls = roll_dice_expression("2d6")
+    if ws.cell["A7"] == "" or ws.cell["A7"] is None or ws.cell["A7"] is False:
+        total, max_possible, rolls = roll_dice_expression("1d6")
+    else:
+        total, max_possible, rolls = roll_dice_expression("2d6")
 
     result = ws.cell(row = total, column=2).value
 
