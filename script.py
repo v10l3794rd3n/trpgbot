@@ -18,7 +18,6 @@ def find_cell_by_value(ws, keyword):
         for cell in row:
             if cell.value is not None:
                 if keyword.strip() == str(cell.value).strip():
-                    print(cell.coordinate)
                     return cell.coordinate
     return None
 
@@ -503,6 +502,110 @@ def insane_category(id, category):
 
     script += f"♾️ {category} || {rolls} → {total} [{skill}]"
     return script
+
+
+################################################## MGLG
+
+def mglg_roll(point):
+
+    total, max_possible, rolls = roll_dice_expression("2d6")
+
+    if total == 12:
+        success = "크리티컬"
+    elif total == 2:
+        success = "펌블"
+    elif total >= int(point):
+        success = "성공"
+    else:
+        success = "실패"
+
+    if rolls[0] == rolls[1]:
+        success += " | 더블릿 | "
+        if rolls[0] == 1: success += "별"
+        if rolls[0] == 2: success += "짐승"
+        if rolls[0] == 3: success += "힘"
+        if rolls[0] == 4: success += "노래"
+        if rolls[0] == 5: success += "꿈"
+        if rolls[0] == 6: success += "어둠"
+        success += " 마소 1점 발생"
+
+    return success, total, rolls
+
+def mglg_category(id, category):
+    script = ""
+    path = f'MGLG/{id}.xlsx'
+
+    wb = load_workbook(path, data_only=True, read_only=True)
+    ws = wb.active
+
+    total, max_possible, rolls = roll_dice_expression("2d6")
+
+    category_cols = {
+        '별': 6,   # F
+        '짐승': 12,   # L
+        '힘': 17,   # Q
+        '노래': 23,   # W
+        '꿈': 31,   # AE
+        '어둠': 37    # AK
+    }
+
+    if category not in category_cols:
+        return "잘못된 분야입니다."
+
+    base_row = 46
+    base_col = category_cols[category]
+    target_row = base_row + (total - 1)
+
+    skill = ws.cell(row=target_row, column=base_col).value
+
+    script += f"♾️ {category} || {rolls} → {total} [{skill}]"
+    return script
+
+
+def mglg_table(table):
+    script = ""
+    path = f'MGLG/table.xlsx'
+
+    wb = load_workbook(path, data_only=True, read_only=True)
+    ws = wb[table]
+    
+    total, max_possible, rolls = roll_dice_expression("2d6")
+
+    result = ws.cell(row = total, column=2).value
+
+    script += f"🔀 {table} || {rolls} → {total} [{result}]"
+    return script
+
+
+def mglg_default(user, skill):
+    script = ""
+    path = f'MGLG/{user}.xlsx'
+
+    wb = load_workbook(path, data_only=True, read_only=True)
+    ws = wb.active
+
+    cell = find_cell_by_value(ws, skill) # 기능 찾기
+
+    if cell.column == 6: r1, d1 = get_offset_between_cells('F47', 'I47')
+    elif cell.column == 12: r1, d1 = get_offset_between_cells('L47', 'N47')
+    elif cell.column == 17: r1, d1 = get_offset_between_cells('Q47', 'S47')
+    elif cell.column == 23:
+        if cell.row == 58:
+            r1, d1 = get_offset_between_cells('W58', 'AQ58')
+        else:
+            r1, d1 = get_offset_between_cells('W47', 'AA47')
+    elif cell.column == 31: r1, d1 = get_offset_between_cells('AE47', 'AH47')
+    elif cell.column == 37: r1, d1 = get_offset_between_cells('AK47', 'AQ47')
+
+    point = get_shifted_cell_value(ws, cell, right=r1, down=d1)
+
+    success, total, rolls = mglg_roll(point)
+    script += f"{point} || 🎲 2d6 = {rolls} → {total} [{success}]"
+    
+    return script
+
+
+
 
 def m_d66():
     first = random.randint(1, 6)
