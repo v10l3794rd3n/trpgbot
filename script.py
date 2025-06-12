@@ -589,16 +589,16 @@ def mglg_default(user, skill):
 
     cell = find_cell_by_value(ws, skill) # 기능 찾기
 
-    if cell.column == 6: r1, d1 = get_offset_between_cells('F47', 'I47')
-    elif cell.column == 12: r1, d1 = get_offset_between_cells('L47', 'N47')
-    elif cell.column == 17: r1, d1 = get_offset_between_cells('Q47', 'S47')
-    elif cell.column == 23:
-        if cell.row == 58:
+    if cell.column == 'F': r1, d1 = get_offset_between_cells('F47', 'I47')
+    elif cell.column == 'L': r1, d1 = get_offset_between_cells('L47', 'N47')
+    elif cell.column == 'Q': r1, d1 = get_offset_between_cells('Q47', 'S47')
+    elif cell.column == 'W':
+        if cell.row == 58 or cell.row == '58':
             r1, d1 = get_offset_between_cells('W58', 'AQ58')
         else:
             r1, d1 = get_offset_between_cells('W47', 'AA47')
-    elif cell.column == 31: r1, d1 = get_offset_between_cells('AE47', 'AH47')
-    elif cell.column == 37: r1, d1 = get_offset_between_cells('AK47', 'AQ47')
+    elif cell.column == 'AE': r1, d1 = get_offset_between_cells('AE47', 'AH47')
+    elif cell.column == 'AK': r1, d1 = get_offset_between_cells('AK47', 'AQ47')
 
     point = get_shifted_cell_value(ws, cell, right=r1, down=d1)
 
