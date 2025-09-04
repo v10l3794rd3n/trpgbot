@@ -183,6 +183,20 @@ class dgListener(StreamListener):
                     if len(tags) >= 3:
                         ability = tags[2].strip()
                     answers = script.inSANe_default(user, skill, modifier, ability, fears)
+
+            elif '[마기로기]' in notification['status']['content']:
+                if '분야' in notification['status']['content']:
+                    match = re.search(r"\[마기로기\]\[\s*분야\s*/\s*([^\[\]/]+)\s*\]", notification['status']['content'])
+                    if match:
+                        category = match.group(1)
+                        answers = script.mglg_category(user, category)
+                elif '[표]' in notification['status']['content']:
+                    table = re.sub(r"\s", "", re.findall(r"\[([^\[\]]+)\]", notification['status']['content'])[-1])
+                    answers = script.mglg_table(table)
+                else:
+                    account = mastodon.account(notification['account']['id'])
+                    skill = re.findall(r"\[([^\[\]]+)\]", notification['status']['content'])[-1]
+                    answers = script.mglg_default(user, skill)
                 
 ############################################## 기타 다이스 #######################################
             elif "[choice" in notification['status']['content']:
