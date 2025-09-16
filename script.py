@@ -527,7 +527,7 @@ def mglg_roll(point):
         if rolls[0] == 4: success += "노래"
         if rolls[0] == 5: success += "꿈"
         if rolls[0] == 6: success += "어둠"
-        success += " 마소 1점 발생"
+        success += " 마소 2점 발생"
 
     return success, total, rolls
 
